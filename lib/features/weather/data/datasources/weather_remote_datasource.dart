@@ -14,7 +14,8 @@ class WeatherRemoteDataSourceImpl implements WeatherRemoteDataSource {
 
   @override
   Future<WeatherModel> getWeatherByCity(String city) async {
-    final response = await client.get(Uri.parse(ApiConstants.currentWeatherByCity(city)));
+    final response =
+        await client.get(Uri.parse(ApiConstants.currentWeatherByCity(city)));
     if (response.statusCode == 200) {
       return WeatherModel.fromJson(json.decode(response.body));
     }
@@ -23,8 +24,8 @@ class WeatherRemoteDataSourceImpl implements WeatherRemoteDataSource {
 
   @override
   Future<WeatherModel> getWeatherByCoordinates(double lat, double lon) async {
-    final response =
-        await client.get(Uri.parse(ApiConstants.currentWeatherByCoords(lat, lon)));
+    final response = await client
+        .get(Uri.parse(ApiConstants.currentWeatherByCoords(lat, lon)));
     if (response.statusCode == 200) {
       return WeatherModel.fromJson(json.decode(response.body));
     }

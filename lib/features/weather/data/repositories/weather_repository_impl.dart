@@ -31,7 +31,8 @@ class WeatherRepositoryImpl implements WeatherRepository {
   }
 
   @override
-  Future<Either<Failure, Weather>> getWeatherByCoordinates(double lat, double lon) async {
+  Future<Either<Failure, Weather>> getWeatherByCoordinates(
+      double lat, double lon) async {
     try {
       final cacheKey = '$lat,$lon';
       final cached = await localDataSource.getCachedWeather(cacheKey);
