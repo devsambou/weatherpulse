@@ -1,0 +1,39 @@
+name: Flutter CI
+
+# Se déclenche à chaque push et sur chaque PR vers main
+on:
+  push:
+    branches: [ main, 'feature/**' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Analyze, Test & Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout du code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Installer les dépendances
+        run: flutter pub get
+
+      - name: Vérifier le formatage du code
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Analyser le code (lint)
+        run: flutter analyze --no-fatal-infos
+
+      - name: Lancer les tests unitaires
+        run: flutter test --coverage
+
+      - name: Build APK (vérification de compilation)
+        run: flutter build apk --debug
