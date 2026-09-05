@@ -8,7 +8,7 @@ void main() {
         'name': 'Dakar',
         'main': {'temp': 29.5, 'feels_like': 31.0, 'humidity': 70},
         'weather': [
-          {'description': 'ciel dégagé', 'icon': '01d'}
+          {'description': 'ciel dégagé', 'icon': '01d'},
         ],
         'wind': {'speed': 3.2},
       };
