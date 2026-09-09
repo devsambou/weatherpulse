@@ -52,31 +52,22 @@ class WeatherRemoteDataSourceImpl implements WeatherRemoteDataSource {
       rethrow;
     } on NetworkException {
       rethrow;
+    } on FormatException {
+      throw const ServerException(
+        statusCode: 0,
+        message: 'Réponse API illisible (JSON invalide)',
+      );
     }
   }
 
   @override
   Future<WeatherModel> getWeatherByCity(String city) async {
-    final response = await client.get(
-      Uri.parse(ApiConstants.currentWeatherByCity(city)),
-    );
-    if (response.statusCode == 200) {
-      return WeatherModel.fromJson(json.decode(response.body));
-    }
-    throw Exception('Erreur API OpenWeather : ${response.statusCode}');
     final data = await _getJson(ApiConstants.currentWeatherByCity(city));
     return WeatherModel.fromJson(data);
   }
 
   @override
   Future<WeatherModel> getWeatherByCoordinates(double lat, double lon) async {
-    final response = await client.get(
-      Uri.parse(ApiConstants.currentWeatherByCoords(lat, lon)),
-    );
-    if (response.statusCode == 200) {
-      return WeatherModel.fromJson(json.decode(response.body));
-    }
-    throw Exception('Erreur API OpenWeather : ${response.statusCode}');
     final data = await _getJson(ApiConstants.currentWeatherByCoords(lat, lon));
     return WeatherModel.fromJson(data);
   }

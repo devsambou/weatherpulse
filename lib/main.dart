@@ -14,7 +14,7 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox<String>(CacheConstants.weatherBoxName);
 
-  // TODO Membre E : initialiser Firebase ici (Firebase.initializeApp())
+  
 
   runApp(const ProviderScope(child: WeatherPulseApp()));
 }
