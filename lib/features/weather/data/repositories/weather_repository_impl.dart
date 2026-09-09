@@ -1,5 +1,7 @@
 import 'package:dartz/dartz.dart';
+import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
+import '../../domain/entities/forecast_day.dart';
 import '../../domain/entities/weather.dart';
 import '../../domain/repositories/weather_repository.dart';
 import '../datasources/weather_local_datasource.dart';
@@ -14,6 +16,20 @@ class WeatherRepositoryImpl implements WeatherRepository {
     required this.localDataSource,
   });
 
+  /// Convertit une exception technique en Failure métier (F03)
+  Failure _mapException(Object e) {
+    if (e is CityNotFoundException) {
+      return CityNotFoundFailure(e.message);
+    } else if (e is QuotaExceededException) {
+      return QuotaExceededFailure(e.message);
+    } else if (e is ServerException) {
+      return ServerErrorFailure(e.message, statusCode: e.statusCode);
+    } else if (e is NetworkException) {
+      return NetworkFailure(e.message);
+    }
+    return ServerFailure(e.toString());
+  }
+
   @override
   Future<Either<Failure, Weather>> getWeatherByCity(String city) async {
     try {
@@ -26,13 +42,15 @@ class WeatherRepositoryImpl implements WeatherRepository {
       await localDataSource.cacheWeather(city, result);
       return Right(result);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(_mapException(e));
     }
   }
 
   @override
   Future<Either<Failure, Weather>> getWeatherByCoordinates(
-      double lat, double lon) async {
+    double lat,
+    double lon,
+  ) async {
     try {
       final cacheKey = '$lat,$lon';
       final cached = await localDataSource.getCachedWeather(cacheKey);
@@ -42,7 +60,19 @@ class WeatherRepositoryImpl implements WeatherRepository {
       await localDataSource.cacheWeather(cacheKey, result);
       return Right(result);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ForecastDay>>> getForecastByCity(
+    String city,
+  ) async {
+    try {
+      final result = await remoteDataSource.getForecastByCity(city);
+      return Right(result);
+    } catch (e) {
+      return Left(_mapException(e));
     }
   }
 }
