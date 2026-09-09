@@ -85,15 +85,18 @@ void main() {
   // ─── F01 : Météo actuelle ────────────────────────────────────────────────
 
   group('getWeatherByCity — F01', () {
-    test('retourne Right(Weather) quand le cache est vide et le réseau répond', () async {
-      mockLocal.cachedResult = null;
-      mockRemote.weatherResult = tWeatherModel;
+    test(
+      'retourne Right(Weather) quand le cache est vide et le réseau répond',
+      () async {
+        mockLocal.cachedResult = null;
+        mockRemote.weatherResult = tWeatherModel;
 
-      final result = await repository.getWeatherByCity('Paris');
+        final result = await repository.getWeatherByCity('Paris');
 
-      expect(result, Right(tWeatherModel));
-      expect(mockLocal.cacheWasCalled, isTrue);
-    });
+        expect(result, Right(tWeatherModel));
+        expect(mockLocal.cacheWasCalled, isTrue);
+      },
+    );
 
     test('retourne Right(Weather) depuis le cache sans appel réseau', () async {
       mockLocal.cachedResult = tWeatherModel;
@@ -111,69 +114,83 @@ void main() {
   group('getWeatherByCity — F03 : erreurs API', () {
     setUp(() => mockLocal.cachedResult = null);
 
-    test('retourne CityNotFoundFailure quand le datasource lève CityNotFoundException (404)', () async {
-      mockRemote.errorToThrow = const CityNotFoundException();
+    test(
+      'retourne CityNotFoundFailure quand le datasource lève CityNotFoundException (404)',
+      () async {
+        mockRemote.errorToThrow = const CityNotFoundException();
 
-      final result = await repository.getWeatherByCity('VilleInexistante');
+        final result = await repository.getWeatherByCity('VilleInexistante');
 
-      expect(result.isLeft(), isTrue);
-      result.fold(
-        (failure) => expect(failure, isA<CityNotFoundFailure>()),
-        (_) => fail('Devrait être un Left'),
-      );
-    });
+        expect(result.isLeft(), isTrue);
+        result.fold(
+          (failure) => expect(failure, isA<CityNotFoundFailure>()),
+          (_) => fail('Devrait être un Left'),
+        );
+      },
+    );
 
-    test('retourne QuotaExceededFailure quand le datasource lève QuotaExceededException (429)', () async {
-      mockRemote.errorToThrow = const QuotaExceededException();
+    test(
+      'retourne QuotaExceededFailure quand le datasource lève QuotaExceededException (429)',
+      () async {
+        mockRemote.errorToThrow = const QuotaExceededException();
 
-      final result = await repository.getWeatherByCity('Paris');
+        final result = await repository.getWeatherByCity('Paris');
 
-      expect(result.isLeft(), isTrue);
-      result.fold(
-        (failure) => expect(failure, isA<QuotaExceededFailure>()),
-        (_) => fail('Devrait être un Left'),
-      );
-    });
+        expect(result.isLeft(), isTrue);
+        result.fold(
+          (failure) => expect(failure, isA<QuotaExceededFailure>()),
+          (_) => fail('Devrait être un Left'),
+        );
+      },
+    );
 
-    test('retourne NetworkFailure quand le datasource lève NetworkException (pas de réseau)', () async {
-      mockRemote.errorToThrow = const NetworkException();
+    test(
+      'retourne NetworkFailure quand le datasource lève NetworkException (pas de réseau)',
+      () async {
+        mockRemote.errorToThrow = const NetworkException();
 
-      final result = await repository.getWeatherByCity('Paris');
+        final result = await repository.getWeatherByCity('Paris');
 
-      expect(result.isLeft(), isTrue);
-      result.fold(
-        (failure) => expect(failure, isA<NetworkFailure>()),
-        (_) => fail('Devrait être un Left'),
-      );
-    });
+        expect(result.isLeft(), isTrue);
+        result.fold(
+          (failure) => expect(failure, isA<NetworkFailure>()),
+          (_) => fail('Devrait être un Left'),
+        );
+      },
+    );
 
-    test('retourne ServerErrorFailure quand le datasource lève ServerException (5xx)', () async {
-      mockRemote.errorToThrow =
-          const ServerException(statusCode: 503, message: 'Service indisponible');
+    test(
+      'retourne ServerErrorFailure quand le datasource lève ServerException (5xx)',
+      () async {
+        mockRemote.errorToThrow = const ServerException(
+          statusCode: 503,
+          message: 'Service indisponible',
+        );
 
-      final result = await repository.getWeatherByCity('Paris');
+        final result = await repository.getWeatherByCity('Paris');
 
-      expect(result.isLeft(), isTrue);
-      result.fold(
-        (failure) {
+        expect(result.isLeft(), isTrue);
+        result.fold((failure) {
           expect(failure, isA<ServerErrorFailure>());
           expect((failure as ServerErrorFailure).statusCode, 503);
-        },
-        (_) => fail('Devrait être un Left'),
-      );
-    });
+        }, (_) => fail('Devrait être un Left'));
+      },
+    );
 
-    test('retourne ServerFailure générique pour toute autre exception', () async {
-      mockRemote.errorToThrow = Exception('Erreur inconnue');
+    test(
+      'retourne ServerFailure générique pour toute autre exception',
+      () async {
+        mockRemote.errorToThrow = Exception('Erreur inconnue');
 
-      final result = await repository.getWeatherByCity('Paris');
+        final result = await repository.getWeatherByCity('Paris');
 
-      expect(result.isLeft(), isTrue);
-      result.fold(
-        (failure) => expect(failure, isA<ServerFailure>()),
-        (_) => fail('Devrait être un Left'),
-      );
-    });
+        expect(result.isLeft(), isTrue);
+        result.fold(
+          (failure) => expect(failure, isA<ServerFailure>()),
+          (_) => fail('Devrait être un Left'),
+        );
+      },
+    );
   });
 
   // ─── F03 : Erreurs pour getWeatherByCoordinates ──────────────────────────
@@ -181,29 +198,31 @@ void main() {
   group('getWeatherByCoordinates — F03', () {
     setUp(() => mockLocal.cachedResult = null);
 
-    test('retourne CityNotFoundFailure (404) pour des coordonnées invalides', () async {
-      mockRemote.errorToThrow = const CityNotFoundException();
+    test(
+      'retourne CityNotFoundFailure (404) pour des coordonnées invalides',
+      () async {
+        mockRemote.errorToThrow = const CityNotFoundException();
 
-      final result = await repository.getWeatherByCoordinates(999, 999);
+        final result = await repository.getWeatherByCoordinates(999, 999);
 
-      result.fold(
-        (failure) => expect(failure, isA<CityNotFoundFailure>()),
-        (_) => fail('Devrait être un Left'),
-      );
-    });
+        result.fold(
+          (failure) => expect(failure, isA<CityNotFoundFailure>()),
+          (_) => fail('Devrait être un Left'),
+        );
+      },
+    );
 
     test('retourne NetworkFailure en cas de timeout', () async {
-      mockRemote.errorToThrow = const NetworkException('La requête a expiré (timeout)');
+      mockRemote.errorToThrow = const NetworkException(
+        'La requête a expiré (timeout)',
+      );
 
       final result = await repository.getWeatherByCoordinates(48.8, 2.3);
 
-      result.fold(
-        (failure) {
-          expect(failure, isA<NetworkFailure>());
-          expect(failure.message, contains('timeout'));
-        },
-        (_) => fail('Devrait être un Left'),
-      );
+      result.fold((failure) {
+        expect(failure, isA<NetworkFailure>());
+        expect(failure.message, contains('timeout'));
+      }, (_) => fail('Devrait être un Left'));
     });
   });
 
@@ -218,16 +237,18 @@ void main() {
       expect(result.isRight(), isTrue);
     });
 
-    test('retourne CityNotFoundFailure si la ville est introuvable (404)', () async {
-      mockRemote.errorToThrow = const CityNotFoundException();
+    test(
+      'retourne CityNotFoundFailure si la ville est introuvable (404)',
+      () async {
+        mockRemote.errorToThrow = const CityNotFoundException();
 
-      final result = await repository.getForecastByCity('VilleInexistante');
+        final result = await repository.getForecastByCity('VilleInexistante');
 
-      result.fold(
-        (failure) => expect(failure, isA<CityNotFoundFailure>()),
-        (_) => fail('Devrait être un Left'),
-      );
-    });
+        result.fold(
+          (failure) => expect(failure, isA<CityNotFoundFailure>()),
+          (_) => fail('Devrait être un Left'),
+        );
+      },
+    );
   });
 }
-

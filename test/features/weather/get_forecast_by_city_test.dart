@@ -16,7 +16,8 @@ class MockWeatherRepository implements WeatherRepository {
 
   @override
   Future<Either<Failure, List<ForecastDay>>> getForecastByCity(
-      String city) async {
+    String city,
+  ) async {
     return forecastResult!;
   }
 
@@ -26,8 +27,9 @@ class MockWeatherRepository implements WeatherRepository {
 
   @override
   Future<Either<Failure, Weather>> getWeatherByCoordinates(
-          double lat, double lon) async =>
-      throw UnimplementedError();
+    double lat,
+    double lon,
+  ) async => throw UnimplementedError();
 }
 
 // ---------------------------------------------------------------------------
@@ -65,34 +67,38 @@ void main() {
   });
 
   group('GetForecastByCity — F02 Use case', () {
-    test('retourne Right(List<ForecastDay>) quand le repository réussit', () async {
-      mockRepository.forecastResult = Right(tForecastDays);
+    test(
+      'retourne Right(List<ForecastDay>) quand le repository réussit',
+      () async {
+        mockRepository.forecastResult = Right(tForecastDays);
 
-      final result = await useCase('Paris');
+        final result = await useCase('Paris');
 
-      expect(result, Right(tForecastDays));
-    });
+        expect(result, Right(tForecastDays));
+      },
+    );
 
-    test('retourne exactement les ForecastDays fournis par le repository', () async {
-      mockRepository.forecastResult = Right(tForecastDays);
+    test(
+      'retourne exactement les ForecastDays fournis par le repository',
+      () async {
+        mockRepository.forecastResult = Right(tForecastDays);
 
-      final result = await useCase('Paris');
+        final result = await useCase('Paris');
 
-      result.fold(
-        (_) => fail('Devrait être un Right'),
-        (days) {
+        result.fold((_) => fail('Devrait être un Right'), (days) {
           expect(days.length, 2);
           expect(days[0].date, DateTime(2024, 1, 15));
           expect(days[0].tempMin, 8.0);
           expect(days[0].tempMax, 17.0);
           expect(days[1].description, 'pluie modérée');
-        },
-      );
-    });
+        });
+      },
+    );
 
     test('propage Left(CityNotFoundFailure) du repository', () async {
-      mockRepository.forecastResult =
-          const Left(CityNotFoundFailure('Ville introuvable'));
+      mockRepository.forecastResult = const Left(
+        CityNotFoundFailure('Ville introuvable'),
+      );
 
       final result = await useCase('VilleInexistante');
 
@@ -104,8 +110,9 @@ void main() {
     });
 
     test('propage Left(NetworkFailure) du repository', () async {
-      mockRepository.forecastResult =
-          const Left(NetworkFailure('Pas de connexion réseau'));
+      mockRepository.forecastResult = const Left(
+        NetworkFailure('Pas de connexion réseau'),
+      );
 
       final result = await useCase('Paris');
 
@@ -116,8 +123,9 @@ void main() {
     });
 
     test('propage Left(QuotaExceededFailure) du repository', () async {
-      mockRepository.forecastResult =
-          const Left(QuotaExceededFailure('Quota dépassé'));
+      mockRepository.forecastResult = const Left(
+        QuotaExceededFailure('Quota dépassé'),
+      );
 
       final result = await useCase('Paris');
 
@@ -139,4 +147,3 @@ void main() {
     });
   });
 }
-

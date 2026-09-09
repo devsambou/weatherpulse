@@ -37,4 +37,6 @@ Types : `feat`, `fix`, `docs`, `test`, `refactor`, `chore`
 
 - Respecter les couches Clean Architecture (`domain` ne dépend jamais de `data` ou `presentation`).
 - Chaque nouvelle fonctionnalité côté logique métier doit avoir un test unitaire minimal.
+- lancer `dart format .` avant de push.
 - Lancer `flutter analyze` avant de pousser.
+
