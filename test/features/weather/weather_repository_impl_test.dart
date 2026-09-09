@@ -85,9 +85,7 @@ void main() {
   // ─── F01 : Météo actuelle ────────────────────────────────────────────────
 
   group('getWeatherByCity — F01', () {
-    test(
-      'retourne Right(Weather) quand le cache est vide et le réseau répond',
-      () async {
+    test('retourne Right(Weather) quand le cache est vide et le réseau répond', () async {
       mockLocal.cachedResult = null;
       mockRemote.weatherResult = tWeatherModel;
 
@@ -95,8 +93,7 @@ void main() {
 
       expect(result, Right(tWeatherModel));
       expect(mockLocal.cacheWasCalled, isTrue);
-      },
-    );
+    });
 
     test('retourne Right(Weather) depuis le cache sans appel réseau', () async {
       mockLocal.cachedResult = tWeatherModel;
@@ -114,9 +111,7 @@ void main() {
   group('getWeatherByCity — F03 : erreurs API', () {
     setUp(() => mockLocal.cachedResult = null);
 
-    test(
-      'retourne CityNotFoundFailure quand le datasource lève CityNotFoundException (404)',
-      () async {
+    test('retourne CityNotFoundFailure quand le datasource lève CityNotFoundException (404)', () async {
       mockRemote.errorToThrow = const CityNotFoundException();
 
       final result = await repository.getWeatherByCity('VilleInexistante');
@@ -126,12 +121,9 @@ void main() {
         (failure) => expect(failure, isA<CityNotFoundFailure>()),
         (_) => fail('Devrait être un Left'),
       );
-      },
-    );
+    });
 
-    test(
-      'retourne QuotaExceededFailure quand le datasource lève QuotaExceededException (429)',
-      () async {
+    test('retourne QuotaExceededFailure quand le datasource lève QuotaExceededException (429)', () async {
       mockRemote.errorToThrow = const QuotaExceededException();
 
       final result = await repository.getWeatherByCity('Paris');
@@ -141,12 +133,9 @@ void main() {
         (failure) => expect(failure, isA<QuotaExceededFailure>()),
         (_) => fail('Devrait être un Left'),
       );
-      },
-    );
+    });
 
-    test(
-      'retourne NetworkFailure quand le datasource lève NetworkException (pas de réseau)',
-      () async {
+    test('retourne NetworkFailure quand le datasource lève NetworkException (pas de réseau)', () async {
       mockRemote.errorToThrow = const NetworkException();
 
       final result = await repository.getWeatherByCity('Paris');
@@ -156,29 +145,23 @@ void main() {
         (failure) => expect(failure, isA<NetworkFailure>()),
         (_) => fail('Devrait être un Left'),
       );
-      },
-    );
+    });
 
-    test(
-      'retourne ServerErrorFailure quand le datasource lève ServerException (5xx)',
-      () async {
-        mockRemote.errorToThrow = const ServerException(
-          statusCode: 503,
-          message: 'Service indisponible',
-        );
+    test('retourne ServerErrorFailure quand le datasource lève ServerException (5xx)', () async {
+      mockRemote.errorToThrow =
+          const ServerException(statusCode: 503, message: 'Service indisponible');
 
-        final result = await repository.getWeatherByCity('Paris');
+      final result = await repository.getWeatherByCity('Paris');
 
-        expect(result.isLeft(), isTrue);
-        result.fold(
-          (failure) {
-            expect(failure, isA<ServerErrorFailure>());
-            expect((failure as ServerErrorFailure).statusCode, 503);
-          },
-          (_) => fail('Devrait être un Left'),
-        );
-      },
-    );
+      expect(result.isLeft(), isTrue);
+      result.fold(
+        (failure) {
+          expect(failure, isA<ServerErrorFailure>());
+          expect((failure as ServerErrorFailure).statusCode, 503);
+        },
+        (_) => fail('Devrait être un Left'),
+      );
+    });
 
     test('retourne ServerFailure générique pour toute autre exception', () async {
       mockRemote.errorToThrow = Exception('Erreur inconnue');
@@ -210,8 +193,7 @@ void main() {
     });
 
     test('retourne NetworkFailure en cas de timeout', () async {
-      mockRemote.errorToThrow =
-          const NetworkException('La requête a expiré (timeout)');
+      mockRemote.errorToThrow = const NetworkException('La requête a expiré (timeout)');
 
       final result = await repository.getWeatherByCoordinates(48.8, 2.3);
 
@@ -248,3 +230,4 @@ void main() {
     });
   });
 }
+
