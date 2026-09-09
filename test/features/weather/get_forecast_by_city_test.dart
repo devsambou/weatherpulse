@@ -15,8 +15,7 @@ class MockWeatherRepository implements WeatherRepository {
   Either<Failure, List<ForecastDay>>? forecastResult;
 
   @override
-  Future<Either<Failure, List<ForecastDay>>> getForecastByCity(
-      String city) async {
+  Future<Either<Failure, List<ForecastDay>>> getForecastByCity(String city) async {
     return forecastResult!;
   }
 
@@ -26,7 +25,9 @@ class MockWeatherRepository implements WeatherRepository {
 
   @override
   Future<Either<Failure, Weather>> getWeatherByCoordinates(
-          double lat, double lon) async =>
+    double lat,
+    double lon,
+  ) async =>
       throw UnimplementedError();
 }
 
@@ -65,15 +66,20 @@ void main() {
   });
 
   group('GetForecastByCity — F02 Use case', () {
-    test('retourne Right(List<ForecastDay>) quand le repository réussit', () async {
+    test(
+      'retourne Right(List<ForecastDay>) quand le repository réussit',
+      () async {
       mockRepository.forecastResult = Right(tForecastDays);
 
       final result = await useCase('Paris');
 
       expect(result, Right(tForecastDays));
-    });
+      },
+    );
 
-    test('retourne exactement les ForecastDays fournis par le repository', () async {
+    test(
+      'retourne exactement les ForecastDays fournis par le repository',
+      () async {
       mockRepository.forecastResult = Right(tForecastDays);
 
       final result = await useCase('Paris');
@@ -88,7 +94,8 @@ void main() {
           expect(days[1].description, 'pluie modérée');
         },
       );
-    });
+      },
+    );
 
     test('propage Left(CityNotFoundFailure) du repository', () async {
       mockRepository.forecastResult =
@@ -139,4 +146,3 @@ void main() {
     });
   });
 }
-
