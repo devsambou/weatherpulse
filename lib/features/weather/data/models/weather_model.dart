@@ -27,18 +27,18 @@ class WeatherModel extends Weather {
   }
 
   Map<String, dynamic> toJson() => {
-        'name': cityName,
-        'main': {
-          'temp': temperature,
-          'feels_like': feelsLike,
-          'humidity': humidity,
-        },
-        'weather': [
-          {'description': description, 'icon': iconCode}
-        ],
-        'wind': {'speed': windSpeed},
-        'fetchedAt': fetchedAt.toIso8601String(),
-      };
+    'name': cityName,
+    'main': {
+      'temp': temperature,
+      'feels_like': feelsLike,
+      'humidity': humidity,
+    },
+    'weather': [
+      {'description': description, 'icon': iconCode},
+    ],
+    'wind': {'speed': windSpeed},
+    'fetchedAt': fetchedAt.toIso8601String(),
+  };
 
   /// Reconstruit un WeatherModel depuis le cache local (Hive)
   factory WeatherModel.fromCacheJson(Map<String, dynamic> json) {

@@ -27,7 +27,8 @@ class WeatherLocalDataSourceImpl implements WeatherLocalDataSource {
     final model = WeatherModel.fromCacheJson(decoded);
 
     // Vérifie la fraîcheur du cache (ex: 30 min) avant de le retourner
-    final isExpired = DateTime.now().difference(model.fetchedAt) >
+    final isExpired =
+        DateTime.now().difference(model.fetchedAt) >
         CacheConstants.cacheValidity;
     return isExpired ? null : model;
   }

@@ -24,13 +24,13 @@ class Weather extends Equatable {
 
   @override
   List<Object> get props => [
-        cityName,
-        temperature,
-        feelsLike,
-        description,
-        iconCode,
-        humidity,
-        windSpeed,
-        fetchedAt,
-      ];
+    cityName,
+    temperature,
+    feelsLike,
+    description,
+    iconCode,
+    humidity,
+    windSpeed,
+    fetchedAt,
+  ];
 }
