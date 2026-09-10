@@ -14,8 +14,6 @@ void main() async {
   await Hive.initFlutter();
   await Hive.openBox<String>(CacheConstants.weatherBoxName);
 
-  
-
   runApp(const ProviderScope(child: WeatherPulseApp()));
 }
 
