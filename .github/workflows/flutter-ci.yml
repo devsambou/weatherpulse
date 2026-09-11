@@ -1,16 +1,20 @@
 name: Flutter CI
 
-# Se déclenche à chaque push et sur chaque PR vers main
 on:
   push:
     branches: [ main, 'feature/**' ]
   pull_request:
     branches: [ main ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-test:
     name: Analyze, Test & Build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout du code
@@ -19,6 +23,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.44.9'
           channel: 'stable'
           cache: true
 
