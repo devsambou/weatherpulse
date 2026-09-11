@@ -1,6 +1,9 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiConstants {
-  // ⚠️ Ne jamais commit la clé en dur : passer par --dart-define en CI et en local
-  static const String apiKey = String.fromEnvironment('OPENWEATHER_API_KEY');
+  // La clé est chargée depuis le fichier .env (non commité)
+  // Voir .env.example pour le format attendu
+  static String get apiKey => dotenv.env['OPENWEATHER_API_KEY'] ?? '';
   static const String baseUrl = 'https://api.openweathermap.org/data/2.5';
 
   static String currentWeatherByCity(String city) =>

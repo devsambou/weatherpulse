@@ -17,10 +17,7 @@ app.*.map.json
 *.ipr
 *.iws
 .history/
-.vscode/*.code-workspace
-.vscode/settings.json
-.vscode/launch.json
-.vscode/tasks.json
+
 
 # Fichiers temporaires et système
 *.class
