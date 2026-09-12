@@ -20,6 +20,9 @@ jobs:
       - name: Checkout du code
         uses: actions/checkout@v4
 
+      - name: Créer le fichier .env pour la CI
+        run: cp .env.example .env
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
