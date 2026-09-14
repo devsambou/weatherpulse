@@ -6,10 +6,13 @@ import 'package:http/http.dart' as http;
 
 import 'core/constants/api_constants.dart';
 import 'core/theme/app_theme.dart';
+import 'features/weather/data/datasources/favorites_local_datasource.dart';
 import 'features/weather/data/datasources/weather_local_datasource.dart';
 import 'features/weather/data/datasources/weather_remote_datasource.dart';
+import 'features/weather/data/repositories/favorites_repository_impl.dart';
 import 'features/weather/data/repositories/weather_repository_impl.dart';
 import 'features/weather/presentation/pages/home_page.dart';
+import 'features/weather/presentation/viewmodels/favorites_providers.dart';
 import 'features/weather/presentation/viewmodels/weather_providers.dart';
 
 Future<void> main() async {
@@ -25,6 +28,7 @@ Future<void> main() async {
   // Cache local (feature bonus) : box ouverte une fois pour toute l'app.
   await Hive.initFlutter();
   final weatherBox = await Hive.openBox<String>(CacheConstants.weatherBoxName);
+  final favoritesBox = await Hive.openBox<String>(FavoritesConstants.boxName);
 
   // TODO Membre E : initialiser Firebase ici (Firebase.initializeApp()).
 
@@ -36,10 +40,15 @@ Future<void> main() async {
     localDataSource: WeatherLocalDataSourceImpl(weatherBox),
   );
 
+  final favoritesRepository = FavoritesRepositoryImpl(
+    localDataSource: FavoritesLocalDataSourceImpl(favoritesBox),
+  );
+
   runApp(
     ProviderScope(
       overrides: [
         weatherRepositoryProvider.overrideWithValue(weatherRepository),
+        favoritesRepositoryProvider.overrideWithValue(favoritesRepository),
         // TODO(Géolocalisation): ajouter ici
         // locationServiceProvider.overrideWithValue(GeolocatorLocationService()).
       ],

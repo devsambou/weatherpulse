@@ -9,6 +9,7 @@ import '../../domain/entities/weather.dart';
 import '../viewmodels/weather_view_model.dart';
 import '../widgets/city_search_field.dart';
 import '../widgets/current_weather_view.dart';
+import '../widgets/favorites_bar.dart';
 import '../widgets/weather_details_grid.dart';
 import '../widgets/weather_state_views.dart';
 
@@ -70,6 +71,11 @@ class HomePage extends ConsumerWidget {
                     // implémenté, ce bouton chargera la position réelle (F04).
                     onUseLocation: viewModel.loadFromDeviceLocation,
                   ),
+                ),
+                const SizedBox(height: 10),
+                FavoritesBar(
+                  selectedCity: weather?.cityName,
+                  onCitySelected: viewModel.loadByCity,
                 ),
                 Expanded(
                   child: switch (state) {

@@ -20,3 +20,7 @@ class CacheConstants {
   static const String weatherBoxName = 'weather_cache_box';
   static const Duration cacheValidity = Duration(minutes: 30);
 }
+
+class FavoritesConstants {
+  static const String boxName = 'favorites_box';
+}
