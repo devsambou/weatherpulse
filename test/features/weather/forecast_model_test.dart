@@ -149,6 +149,54 @@ void main() {
       }
     });
 
+    test(
+      'fromForecastJson fixe fetchedAt à DateTime.now() approximativement',
+      () {
+        final before = DateTime.now();
+        final models = ForecastModel.fromForecastJson(
+          Map<String, dynamic>.from(tForecastJson),
+        );
+        final after = DateTime.now();
+
+        expect(models.first.fetchedAt, isNotNull);
+        expect(
+          models.first.fetchedAt!.isAfter(before) ||
+              models.first.fetchedAt == before,
+          isTrue,
+        );
+        expect(
+          models.first.fetchedAt!.isBefore(after) ||
+              models.first.fetchedAt == after,
+          isTrue,
+        );
+      },
+    );
+
+    test('toJson produit la structure JSON attendue pour le cache', () {
+      final model = forecast[0];
+      final json = model.toJson();
+
+      expect(json['date'], model.date.toIso8601String());
+      expect(json['tempMin'], 8.0);
+      expect(json['tempMax'], 17.0);
+      expect(json['description'], 'ciel dégagé');
+      expect(json['iconCode'], '01d');
+      expect(json['fetchedAt'], isNotNull);
+    });
+
+    test('fromCacheJson reconstruit fidèlement depuis le cache', () {
+      final original = forecast[0];
+      final cacheJson = original.toJson();
+      final fromCache = ForecastModel.fromCacheJson(cacheJson);
+
+      expect(fromCache.date, original.date);
+      expect(fromCache.tempMin, original.tempMin);
+      expect(fromCache.tempMax, original.tempMax);
+      expect(fromCache.description, original.description);
+      expect(fromCache.iconCode, original.iconCode);
+      expect(fromCache.fetchedAt, original.fetchedAt);
+    });
+
     test('un JSON vide retourne une liste vide', () {
       final empty = ForecastModel.fromForecastJson({
         'list': [],

@@ -69,7 +69,13 @@ class WeatherRepositoryImpl implements WeatherRepository {
     String city,
   ) async {
     try {
+      // 1. Tente le cache d'abord (feature bonus)
+      final cached = await localDataSource.getCachedForecast(city);
+      if (cached != null) return Right(cached);
+
+      // 2. Sinon appel réseau
       final result = await remoteDataSource.getForecastByCity(city);
+      await localDataSource.cacheForecast(city, result);
       return Right(result);
     } catch (e) {
       return Left(_mapException(e));
