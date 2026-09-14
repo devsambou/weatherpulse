@@ -10,6 +10,7 @@ class ForecastModel extends ForecastDay {
     required super.tempMax,
     required super.description,
     required super.iconCode,
+    super.fetchedAt,
   });
 
   /// Agrège les 40 entrées de 3h de la réponse /forecast en 5 résumés journaliers.
@@ -20,8 +21,12 @@ class ForecastModel extends ForecastDay {
   /// - tempMax = maximum des temp_max de chaque tranche
   /// - description = description de la tranche du midi (12h), ou la plus fréquente
   /// - iconCode = icône de la tranche du midi (12h), ou la première du jour
-  static List<ForecastModel> fromForecastJson(Map<String, dynamic> json) {
+  static List<ForecastModel> fromForecastJson(
+    Map<String, dynamic> json, {
+    DateTime? fetchedAt,
+  }) {
     final list = json['list'] as List<dynamic>;
+    final now = fetchedAt ?? DateTime.now();
 
     // Groupe les tranches par date (yyyy-MM-dd)
     final Map<String, List<Map<String, dynamic>>> byDay = {};
@@ -78,10 +83,35 @@ class ForecastModel extends ForecastDay {
           tempMax: tempMax == double.negativeInfinity ? 0 : tempMax,
           description: description,
           iconCode: iconCode,
+          fetchedAt: now,
         ),
       );
     }
 
     return result;
+  }
+
+  /// Sérialise le modèle pour le stockage dans le cache local Hive
+  Map<String, dynamic> toJson() => {
+    'date': date.toIso8601String(),
+    'tempMin': tempMin,
+    'tempMax': tempMax,
+    'description': description,
+    'iconCode': iconCode,
+    'fetchedAt': (fetchedAt ?? DateTime.now()).toIso8601String(),
+  };
+
+  /// Reconstruit un ForecastModel depuis le cache local (Hive)
+  factory ForecastModel.fromCacheJson(Map<String, dynamic> json) {
+    return ForecastModel(
+      date: DateTime.parse(json['date'] as String),
+      tempMin: (json['tempMin'] as num).toDouble(),
+      tempMax: (json['tempMax'] as num).toDouble(),
+      description: json['description'] as String,
+      iconCode: json['iconCode'] as String,
+      fetchedAt: json['fetchedAt'] != null
+          ? DateTime.parse(json['fetchedAt'] as String)
+          : null,
+    );
   }
 }

@@ -38,7 +38,9 @@ class MockWeatherRemoteDataSource implements WeatherRemoteDataSource {
 
 class MockWeatherLocalDataSource implements WeatherLocalDataSource {
   WeatherModel? cachedResult;
+  List<ForecastModel>? cachedForecastResult;
   bool cacheWasCalled = false;
+  bool cacheForecastWasCalled = false;
 
   @override
   Future<WeatherModel?> getCachedWeather(String cityKey) async => cachedResult;
@@ -47,10 +49,22 @@ class MockWeatherLocalDataSource implements WeatherLocalDataSource {
   Future<void> cacheWeather(String cityKey, WeatherModel weather) async {
     cacheWasCalled = true;
   }
+
+  @override
+  Future<List<ForecastModel>?> getCachedForecast(String cityKey) async =>
+      cachedForecastResult;
+
+  @override
+  Future<void> cacheForecast(
+    String cityKey,
+    List<ForecastModel> forecast,
+  ) async {
+    cacheForecastWasCalled = true;
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Fixture météo nominale
+// Fixtures
 // ---------------------------------------------------------------------------
 
 final tWeatherModel = WeatherModel(
@@ -63,6 +77,17 @@ final tWeatherModel = WeatherModel(
   windSpeed: 4.2,
   fetchedAt: DateTime(2024, 1, 15, 12),
 );
+
+final tForecastModel = ForecastModel(
+  date: DateTime(2024, 1, 15),
+  tempMin: 8.0,
+  tempMax: 17.0,
+  description: 'ciel dégagé',
+  iconCode: '01d',
+  fetchedAt: DateTime(2024, 1, 15, 12),
+);
+
+final tForecastList = [tForecastModel];
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -86,7 +111,7 @@ void main() {
 
   group('getWeatherByCity — F01', () {
     test(
-      'retourne Right(Weather) quand le cache est vide et le réseau répond',
+      'retourne Right(Weather) quand le cache est vide et le réseau répond (sauvegarde en cache)',
       () async {
         mockLocal.cachedResult = null;
         mockRemote.weatherResult = tWeatherModel;
@@ -98,15 +123,31 @@ void main() {
       },
     );
 
-    test('retourne Right(Weather) depuis le cache sans appel réseau', () async {
-      mockLocal.cachedResult = tWeatherModel;
-      // si le réseau est appelé, il lance une erreur — ce qui échouerait le test
-      mockRemote.errorToThrow = const NetworkException();
+    test(
+      'retourne Right(Weather) depuis le cache sans appel réseau (cache valide)',
+      () async {
+        mockLocal.cachedResult = tWeatherModel;
+        // si le réseau est appelé, il lance une erreur — ce qui échouerait le test
+        mockRemote.errorToThrow = const NetworkException();
 
-      final result = await repository.getWeatherByCity('Paris');
+        final result = await repository.getWeatherByCity('Paris');
 
-      expect(result, Right(tWeatherModel));
-    });
+        expect(result, Right(tWeatherModel));
+      },
+    );
+
+    test(
+      'ré-appelle l\'API et sauvegarde le résultat quand le cache est expiré (null)',
+      () async {
+        mockLocal.cachedResult = null;
+        mockRemote.weatherResult = tWeatherModel;
+
+        final result = await repository.getWeatherByCity('Paris');
+
+        expect(result, Right(tWeatherModel));
+        expect(mockLocal.cacheWasCalled, isTrue);
+      },
+    );
   });
 
   // ─── F03 : Gestion des erreurs ───────────────────────────────────────────
@@ -226,20 +267,52 @@ void main() {
     });
   });
 
-  // ─── F02 : Prévisions (repository level) ─────────────────────────────────
+  // ─── F02 & F09 : Prévisions et Cache (repository level) ───────────────────
 
-  group('getForecastByCity — F02', () {
-    test('retourne Right(List<ForecastDay>) quand le réseau répond', () async {
-      mockRemote.forecastResult = [];
+  group('getForecastByCity — F02 & F09', () {
+    test(
+      'retourne Right(List<ForecastDay>) quand le cache est vide et le réseau répond (sauvegarde en cache)',
+      () async {
+        mockLocal.cachedForecastResult = null;
+        mockRemote.forecastResult = tForecastList;
 
-      final result = await repository.getForecastByCity('Paris');
+        final result = await repository.getForecastByCity('Paris');
 
-      expect(result.isRight(), isTrue);
-    });
+        expect(result, Right(tForecastList));
+        expect(mockLocal.cacheForecastWasCalled, isTrue);
+      },
+    );
+
+    test(
+      'retourne Right(List<ForecastDay>) depuis le cache sans appel réseau (cache valide)',
+      () async {
+        mockLocal.cachedForecastResult = tForecastList;
+        // Si le réseau est appelé, il lance une erreur réseau
+        mockRemote.errorToThrow = const NetworkException();
+
+        final result = await repository.getForecastByCity('Paris');
+
+        expect(result, Right(tForecastList));
+      },
+    );
+
+    test(
+      'ré-appelle l\'API et sauvegarde quand le cache est expiré (null)',
+      () async {
+        mockLocal.cachedForecastResult = null;
+        mockRemote.forecastResult = tForecastList;
+
+        final result = await repository.getForecastByCity('Paris');
+
+        expect(result, Right(tForecastList));
+        expect(mockLocal.cacheForecastWasCalled, isTrue);
+      },
+    );
 
     test(
       'retourne CityNotFoundFailure si la ville est introuvable (404)',
       () async {
+        mockLocal.cachedForecastResult = null;
         mockRemote.errorToThrow = const CityNotFoundException();
 
         final result = await repository.getForecastByCity('VilleInexistante');
