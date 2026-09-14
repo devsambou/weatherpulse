@@ -24,3 +24,8 @@ class CacheConstants {
 class FavoritesConstants {
   static const String boxName = 'favorites_box';
 }
+
+class SettingsConstants {
+  static const String boxName = 'settings_box';
+  static const String themeModeKey = 'theme_mode';
+}
