@@ -88,7 +88,7 @@ class _WeatherSearchFieldState extends State<WeatherSearchField> {
         GlassContainer(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
           borderRadius: BorderRadius.circular(32),
-          backgroundColor: WeatherPalette.searchFieldBackground(context),
+          backgroundColor: GlassStyles.searchFieldBackground(context),
           borderColor: widget.errorMessage != null
               ? Colors.redAccent.withValues(alpha: 0.6)
               : isDark

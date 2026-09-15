@@ -38,6 +38,8 @@ void main() {
         humidity: 65,
         windSpeed: 4.5,
         fetchedAt: DateTime.now(),
+        sunrise: DateTime.now(),
+        sunset: DateTime.now(),
       );
 
       expect(WeatherCondition.fromWeather(weather), WeatherCondition.clear);
@@ -90,6 +92,8 @@ void main() {
         humidity: 80,
         windSpeed: 5.0,
         fetchedAt: DateTime.now(),
+        sunrise: DateTime.now(),
+        sunset: DateTime.now(),
       );
 
       final palette = WeatherPalette.fromWeather(weather, isDark: true);

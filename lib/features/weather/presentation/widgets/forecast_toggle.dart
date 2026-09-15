@@ -24,7 +24,7 @@ class ForecastToggle extends StatelessWidget {
     return GlassContainer(
       padding: const EdgeInsets.all(4),
       borderRadius: BorderRadius.circular(30),
-      backgroundColor: WeatherPalette.glassBackground(context),
+      backgroundColor: GlassStyles.glassBackground(context),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

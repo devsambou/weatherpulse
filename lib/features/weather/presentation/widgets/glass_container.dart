@@ -39,8 +39,8 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = backgroundColor ?? WeatherPalette.glassBackground(context);
-    final border = borderColor ?? WeatherPalette.glassBorder(context);
+    final bg = backgroundColor ?? GlassStyles.glassBackground(context);
+    final border = borderColor ?? GlassStyles.glassBorder(context);
 
     final decoration = BoxDecoration(
       color: bg,
