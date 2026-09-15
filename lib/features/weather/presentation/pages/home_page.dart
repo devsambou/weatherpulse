@@ -3,11 +3,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
-import '../../../../core/utils/weather_visuals.dart';
+import '../../../../core/theme/weather_palette.dart';
+import '../../../../core/utils/fr_date.dart';
 import '../../domain/entities/weather.dart';
 import '../viewmodels/favorites_view_model.dart';
 import '../viewmodels/forecast_view_model.dart';
 import '../viewmodels/weather_view_model.dart';
+import '../widgets/contextual_header.dart';
 import '../widgets/favorites_bar.dart';
 import '../widgets/forecast_hourly_section.dart';
 import '../widgets/main_weather_card.dart';
@@ -18,13 +20,14 @@ import '../widgets/weather_state_views.dart';
 /// Écran principal de WeatherPulse avec composants météo premium (F01 à F07).
 ///
 /// Intègre :
+/// - Header contextuel (salutation dynamique, ville, accès paramètres)
 /// - Barre de recherche pilule avec état de chargement et gestion d'erreur
-/// - Carte météo principale glassmorphism
+/// - Carte météo principale glassmorphism, avec bascule favori
 /// - Barre de favoris interactive
 /// - Section de prévisions avec toggle Par heure / Quotidien
 /// - Grille responsive des détails météo enrichis
 /// - Animations soignées (AnimatedSwitcher, transitions douces)
-/// - Dégradé dynamique adapté à la condition météo et au cycle jour/nuit
+/// - Dégradé dynamique adapté à la condition météo ET au thème clair/sombre
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
@@ -46,8 +49,12 @@ class HomePage extends ConsumerWidget {
       AsyncData(:final value) => value,
       _ => null,
     };
-    final gradient = WeatherVisuals.backgroundGradient(weather?.iconCode);
+
+    // Dérivation de la condition et de la palette météo selon le thème actif
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final condition = WeatherCondition.fromWeather(weather);
+    final palette = WeatherPalette.get(condition, isDark: isDark);
+    final gradient = palette.backgroundGradient;
 
     final errorMessage = switch (state) {
       AsyncError(:final error) =>
@@ -74,17 +81,8 @@ class HomePage extends ConsumerWidget {
           child: SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 10),
-                const Text(
-                  'WEATHERPULSE',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 2.5,
-                  ),
-                ),
-                const SizedBox(height: 14),
+                // Header contextuel avec salutation dynamique & accès paramètres
+                ContextualHeader(weather: weather),
 
                 // Barre de recherche élégante en pilule (Fonctionnalité 4)
                 Padding(
@@ -117,14 +115,19 @@ class HomePage extends ConsumerWidget {
                 // Contenu principal avec AnimatedSwitcher (Fonctionnalité 5)
                 Expanded(
                   child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 400),
+                    duration: const Duration(milliseconds: 500),
+                    switchInCurve: Curves.easeInOut,
+                    switchOutCurve: Curves.easeInOut,
                     child: switch (state) {
                       AsyncData(:final value) =>
                         value == null
                             ? const WeatherEmptyView(key: ValueKey('empty'))
                             : _WeatherContent(
-                                key: ValueKey(value.cityName),
+                                key: ValueKey(
+                                  'content_${value.cityName}_${value.fetchedAt.millisecondsSinceEpoch}',
+                                ),
                                 weather: value,
+                                palette: palette,
                                 onRefresh: () async {
                                   await viewModel.refresh();
                                   await ref
@@ -157,15 +160,18 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-/// Corps responsive affichant la météo et ses prévisions
+/// Corps « données prêtes », responsive, avec composants météo premium
+/// et intégration de la palette météo dynamique (contraste WCAG garanti).
 class _WeatherContent extends ConsumerWidget {
   const _WeatherContent({
     super.key,
     required this.weather,
+    required this.palette,
     required this.onRefresh,
   });
 
   final Weather weather;
+  final WeatherPalette palette;
   final Future<void> Function() onRefresh;
 
   @override
@@ -178,9 +184,45 @@ class _WeatherContent extends ConsumerWidget {
     final forecastState = ref.watch(forecastViewModelProvider);
     final forecastData = forecastState.value;
 
+    final isFromCache =
+        DateTime.now().difference(weather.fetchedAt).inMinutes >= 1;
+
+    // Badge "dernière mise à jour" — scrim sombre fixe pour un contraste
+    // WCAG garanti quelle que soit la clarté du dégradé de fond (voir fix précédent).
+    final updated = Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.22),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isFromCache ? Icons.cloud_done_outlined : Icons.sync_rounded,
+                size: 14,
+                color: Colors.white.withValues(alpha: 0.9),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                isFromCache
+                    ? 'Données en cache • Mis à jour à ${FrDate.time(weather.fetchedAt)}'
+                    : 'Mis à jour à ${FrDate.time(weather.fetchedAt)}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
     return RefreshIndicator(
       onRefresh: onRefresh,
-      color: const Color(0xFF2E6FD6),
+      color: palette.primary,
       backgroundColor: Colors.white,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -237,6 +279,7 @@ class _WeatherContent extends ConsumerWidget {
                       ),
                       const SizedBox(height: 14),
                       detailsGrid,
+                      updated,
                     ],
                   ),
                 ),
@@ -264,6 +307,7 @@ class _WeatherContent extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               detailsGrid,
+              updated,
             ],
           );
         },
