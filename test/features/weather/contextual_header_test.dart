@@ -46,6 +46,8 @@ void main() {
           humidity: 70,
           windSpeed: 4.0,
           fetchedAt: DateTime(2026, 9, 14, 20, 15),
+          sunrise: DateTime(2026, 9, 14, 6, 30),
+          sunset: DateTime(2026, 9, 14, 18, 45),
         );
 
         await tester.pumpWidget(
