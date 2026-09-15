@@ -8,13 +8,20 @@ class GlassCard extends StatelessWidget {
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(20),
+    this.backgroundColor,
+    this.borderColor,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
+  final Color? backgroundColor;
+  final Color? borderColor;
 
   @override
   Widget build(BuildContext context) {
+    final effectiveBg = backgroundColor ?? Colors.white.withValues(alpha: 0.14);
+    final effectiveBorder = borderColor ?? Colors.white.withValues(alpha: 0.20);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
@@ -22,9 +29,9 @@ class GlassCard extends StatelessWidget {
         child: Container(
           padding: padding,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.14),
+            color: effectiveBg,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.20)),
+            border: Border.all(color: effectiveBorder),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.08),

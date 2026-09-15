@@ -2,9 +2,9 @@ name: Flutter CI
 
 on:
   push:
-    branches: [ main, 'feature/**' ]
+    branches: [main, "feature/**"]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -26,8 +26,8 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.44.9'
-          channel: 'stable'
+          flutter-version: "3.44.9"
+          channel: "stable"
           cache: true
 
       - name: Installer les dépendances

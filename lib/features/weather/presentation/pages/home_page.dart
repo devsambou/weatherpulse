@@ -3,11 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/errors/failures.dart';
+import '../../../../core/theme/weather_palette.dart';
 import '../../../../core/utils/fr_date.dart';
-import '../../../../core/utils/weather_visuals.dart';
 import '../../domain/entities/weather.dart';
 import '../viewmodels/weather_view_model.dart';
 import '../widgets/city_search_field.dart';
+import '../widgets/contextual_header.dart';
 import '../widgets/current_weather_view.dart';
 import '../widgets/favorites_bar.dart';
 import '../widgets/weather_details_grid.dart';
@@ -17,8 +18,9 @@ import '../widgets/weather_state_views.dart';
 ///
 /// Responsabilités :
 ///  - piloter [weatherViewModelProvider] (recherche ville, position GPS) ;
-///  - peindre un dégradé plein écran qui reflète la condition météo ;
-///  - router entre les états chargement / erreur / vide / données ;
+///  - peindre un dégradé plein écran animé qui reflète la condition météo et le thème ;
+///  - afficher le header contextuel (salutation selon l'heure, ville, paramètres) ;
+///  - router entre les états chargement / erreur / vide / données avec transitions douces ;
 ///  - adapter la mise en page : mobile portrait (colonne défilante) et
 ///    tablette / paysage large (deux colonnes).
 class HomePage extends ConsumerWidget {
@@ -33,10 +35,15 @@ class HomePage extends ConsumerWidget {
       AsyncData(:final value) => value,
       _ => null,
     };
-    final gradient = WeatherVisuals.backgroundGradient(weather?.iconCode);
+
+    // Dérivation de la condition et de la palette météo selon le thème actif
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final condition = WeatherCondition.fromWeather(weather);
+    final palette = WeatherPalette.get(condition, isDark: isDark);
+    final gradient = palette.backgroundGradient;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light,
+      value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: gradient.first,
         body: AnimatedContainer(
@@ -52,17 +59,8 @@ class HomePage extends ConsumerWidget {
           child: SafeArea(
             child: Column(
               children: [
-                const SizedBox(height: 10),
-                const Text(
-                  'WEATHERPULSE',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 2.5,
-                  ),
-                ),
-                const SizedBox(height: 14),
+                // Header contextuel avec salutation dynamique & accès paramètres
+                ContextualHeader(weather: weather),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: CitySearchField(
@@ -78,22 +76,32 @@ class HomePage extends ConsumerWidget {
                   onCitySelected: viewModel.loadByCity,
                 ),
                 Expanded(
-                  child: switch (state) {
-                    AsyncData(:final value) =>
-                      value == null
-                          ? const WeatherEmptyView()
-                          : _WeatherContent(
-                              weather: value,
-                              onRefresh: viewModel.refresh,
-                            ),
-                    AsyncError(:final error) => WeatherErrorView(
-                      message: error is Failure
-                          ? error.message
-                          : 'Une erreur inattendue est survenue.',
-                      onRetry: viewModel.refresh,
-                    ),
-                    _ => const WeatherLoadingView(),
-                  },
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 500),
+                    switchInCurve: Curves.easeInOut,
+                    switchOutCurve: Curves.easeInOut,
+                    child: switch (state) {
+                      AsyncData(:final value) =>
+                        value == null
+                            ? const WeatherEmptyView(key: ValueKey('empty'))
+                            : _WeatherContent(
+                                key: ValueKey(
+                                  'content_${value.cityName}_${value.fetchedAt.millisecondsSinceEpoch}',
+                                ),
+                                weather: value,
+                                palette: palette,
+                                onRefresh: viewModel.refresh,
+                              ),
+                      AsyncError(:final error) => WeatherErrorView(
+                        key: const ValueKey('error'),
+                        message: error is Failure
+                            ? error.message
+                            : 'Une erreur inattendue est survenue.',
+                        onRetry: viewModel.refresh,
+                      ),
+                      _ => const WeatherLoadingView(key: ValueKey('loading')),
+                    },
+                  ),
                 ),
               ],
             ),
@@ -104,11 +112,17 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-/// Corps « données prêtes », responsive (F06).
+/// Corps « données prêtes », responsive (F06) avec intégration de la palette météo.
 class _WeatherContent extends StatelessWidget {
-  const _WeatherContent({required this.weather, required this.onRefresh});
+  const _WeatherContent({
+    super.key,
+    required this.weather,
+    required this.palette,
+    required this.onRefresh,
+  });
 
   final Weather weather;
+  final WeatherPalette palette;
   final Future<void> Function() onRefresh;
 
   @override
@@ -119,32 +133,38 @@ class _WeatherContent extends StatelessWidget {
         DateTime.now().difference(weather.fetchedAt).inMinutes >= 1;
     final updated = Padding(
       padding: const EdgeInsets.only(top: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            isFromCache ? Icons.cloud_done_outlined : Icons.sync_rounded,
-            size: 14,
-            color: Colors.white.withValues(alpha: 0.7),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.22),
+            borderRadius: BorderRadius.circular(20),
           ),
-          const SizedBox(width: 6),
-          Text(
-            isFromCache
-                ? 'Données en cache • Mis à jour à ${FrDate.time(weather.fetchedAt)}'
-                : 'Mis à jour à ${FrDate.time(weather.fetchedAt)}',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontSize: 12,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isFromCache ? Icons.cloud_done_outlined : Icons.sync_rounded,
+                size: 14,
+                color: Colors.white.withValues(alpha: 0.9),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                isFromCache
+                    ? 'Données en cache • Mis à jour à ${FrDate.time(weather.fetchedAt)}'
+                    : 'Mis à jour à ${FrDate.time(weather.fetchedAt)}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
 
     return RefreshIndicator(
       onRefresh: onRefresh,
-      color: const Color(0xFF2E6FD6),
+      color: palette.primary,
       backgroundColor: Colors.white,
       child: LayoutBuilder(
         builder: (context, constraints) {
