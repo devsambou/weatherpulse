@@ -4,6 +4,7 @@ import 'package:weatherpulse_g16/core/errors/exceptions.dart';
 import 'package:weatherpulse_g16/core/errors/failures.dart';
 import 'package:weatherpulse_g16/features/weather/data/datasources/weather_local_datasource.dart';
 import 'package:weatherpulse_g16/features/weather/data/datasources/weather_remote_datasource.dart';
+import 'package:weatherpulse_g16/features/weather/data/models/forecast_hour_model.dart';
 import 'package:weatherpulse_g16/features/weather/data/models/forecast_model.dart';
 import 'package:weatherpulse_g16/features/weather/data/models/weather_model.dart';
 import 'package:weatherpulse_g16/features/weather/data/repositories/weather_repository_impl.dart';
@@ -15,6 +16,7 @@ import 'package:weatherpulse_g16/features/weather/data/repositories/weather_repo
 class MockWeatherRemoteDataSource implements WeatherRemoteDataSource {
   WeatherModel? weatherResult;
   List<ForecastModel>? forecastResult;
+  List<ForecastHourModel>? hourlyForecastResult;
   Exception? errorToThrow;
 
   @override
@@ -34,13 +36,21 @@ class MockWeatherRemoteDataSource implements WeatherRemoteDataSource {
     if (errorToThrow != null) throw errorToThrow!;
     return forecastResult!;
   }
+
+  @override
+  Future<List<ForecastHourModel>> getForecastHoursByCity(String city) async {
+    if (errorToThrow != null) throw errorToThrow!;
+    return hourlyForecastResult ?? [];
+  }
 }
 
 class MockWeatherLocalDataSource implements WeatherLocalDataSource {
   WeatherModel? cachedResult;
   List<ForecastModel>? cachedForecastResult;
+  List<ForecastHourModel>? cachedHourlyResult;
   bool cacheWasCalled = false;
   bool cacheForecastWasCalled = false;
+  bool cacheHourlyWasCalled = false;
 
   @override
   Future<WeatherModel?> getCachedWeather(String cityKey) async => cachedResult;
@@ -61,6 +71,19 @@ class MockWeatherLocalDataSource implements WeatherLocalDataSource {
   ) async {
     cacheForecastWasCalled = true;
   }
+
+  @override
+  Future<List<ForecastHourModel>?> getCachedHourlyForecast(
+    String cityKey,
+  ) async => cachedHourlyResult;
+
+  @override
+  Future<void> cacheHourlyForecast(
+    String cityKey,
+    List<ForecastHourModel> forecast,
+  ) async {
+    cacheHourlyWasCalled = true;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -76,6 +99,8 @@ final tWeatherModel = WeatherModel(
   humidity: 65,
   windSpeed: 4.2,
   fetchedAt: DateTime(2024, 1, 15, 12),
+  sunrise: DateTime(2024, 1, 15, 7, 30),
+  sunset: DateTime(2024, 1, 15, 18, 0),
 );
 
 final tForecastModel = ForecastModel(

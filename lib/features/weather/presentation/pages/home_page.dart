@@ -6,28 +6,42 @@ import '../../../../core/errors/failures.dart';
 import '../../../../core/theme/weather_palette.dart';
 import '../../../../core/utils/fr_date.dart';
 import '../../domain/entities/weather.dart';
+import '../viewmodels/favorites_view_model.dart';
+import '../viewmodels/forecast_view_model.dart';
 import '../viewmodels/weather_view_model.dart';
-import '../widgets/city_search_field.dart';
 import '../widgets/contextual_header.dart';
-import '../widgets/current_weather_view.dart';
 import '../widgets/favorites_bar.dart';
-import '../widgets/weather_details_grid.dart';
+import '../widgets/forecast_hourly_section.dart';
+import '../widgets/main_weather_card.dart';
+import '../widgets/weather_detail_card.dart';
+import '../widgets/weather_search_field.dart';
 import '../widgets/weather_state_views.dart';
 
-/// Écran principal de WeatherPulse (F05 + F06).
+/// Écran principal de WeatherPulse avec composants météo premium (F01 à F07).
 ///
-/// Responsabilités :
-///  - piloter [weatherViewModelProvider] (recherche ville, position GPS) ;
-///  - peindre un dégradé plein écran animé qui reflète la condition météo et le thème ;
-///  - afficher le header contextuel (salutation selon l'heure, ville, paramètres) ;
-///  - router entre les états chargement / erreur / vide / données avec transitions douces ;
-///  - adapter la mise en page : mobile portrait (colonne défilante) et
-///    tablette / paysage large (deux colonnes).
+/// Intègre :
+/// - Header contextuel (salutation dynamique, ville, accès paramètres)
+/// - Barre de recherche pilule avec état de chargement et gestion d'erreur
+/// - Carte météo principale glassmorphism, avec bascule favori
+/// - Barre de favoris interactive
+/// - Section de prévisions avec toggle Par heure / Quotidien
+/// - Grille responsive des détails météo enrichis
+/// - Animations soignées (AnimatedSwitcher, transitions douces)
+/// - Dégradé dynamique adapté à la condition météo ET au thème clair/sombre
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Écoute les changements de météo pour synchroniser les prévisions
+    ref.listen<AsyncValue<Weather?>>(weatherViewModelProvider, (prev, next) {
+      if (next case AsyncData(:final value?) when value != prev?.value) {
+        ref
+            .read(forecastViewModelProvider.notifier)
+            .loadForCity(value.cityName);
+      }
+    });
+
     final state = ref.watch(weatherViewModelProvider);
     final viewModel = ref.read(weatherViewModelProvider.notifier);
 
@@ -41,6 +55,14 @@ class HomePage extends ConsumerWidget {
     final condition = WeatherCondition.fromWeather(weather);
     final palette = WeatherPalette.get(condition, isDark: isDark);
     final gradient = palette.backgroundGradient;
+
+    final errorMessage = switch (state) {
+      AsyncError(:final error) =>
+        error is Failure
+            ? error.message
+            : 'Une erreur inattendue est survenue.',
+      _ => null,
+    };
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.light,
@@ -61,20 +83,36 @@ class HomePage extends ConsumerWidget {
               children: [
                 // Header contextuel avec salutation dynamique & accès paramètres
                 ContextualHeader(weather: weather),
+
+                // Barre de recherche élégante en pilule (Fonctionnalité 4)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: CitySearchField(
-                    onSubmitted: viewModel.loadByCity,
-                    // TODO(Géolocalisation): une fois `locationServiceProvider`
-                    // implémenté, ce bouton chargera la position réelle (F04).
+                  child: WeatherSearchField(
+                    isLoading: state is AsyncLoading,
+                    errorMessage: errorMessage,
+                    onSubmitted: (city) {
+                      viewModel.loadByCity(city);
+                      ref
+                          .read(forecastViewModelProvider.notifier)
+                          .loadForCity(city);
+                    },
                     onUseLocation: viewModel.loadFromDeviceLocation,
                   ),
                 ),
                 const SizedBox(height: 10),
+
+                // Barre des villes favorites
                 FavoritesBar(
                   selectedCity: weather?.cityName,
-                  onCitySelected: viewModel.loadByCity,
+                  onCitySelected: (city) {
+                    viewModel.loadByCity(city);
+                    ref
+                        .read(forecastViewModelProvider.notifier)
+                        .loadForCity(city);
+                  },
                 ),
+
+                // Contenu principal avec AnimatedSwitcher (Fonctionnalité 5)
                 Expanded(
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 500),
@@ -90,14 +128,24 @@ class HomePage extends ConsumerWidget {
                                 ),
                                 weather: value,
                                 palette: palette,
-                                onRefresh: viewModel.refresh,
+                                onRefresh: () async {
+                                  await viewModel.refresh();
+                                  await ref
+                                      .read(forecastViewModelProvider.notifier)
+                                      .refresh();
+                                },
                               ),
                       AsyncError(:final error) => WeatherErrorView(
                         key: const ValueKey('error'),
                         message: error is Failure
                             ? error.message
                             : 'Une erreur inattendue est survenue.',
-                        onRetry: viewModel.refresh,
+                        onRetry: () async {
+                          await viewModel.refresh();
+                          await ref
+                              .read(forecastViewModelProvider.notifier)
+                              .refresh();
+                        },
                       ),
                       _ => const WeatherLoadingView(key: ValueKey('loading')),
                     },
@@ -112,8 +160,9 @@ class HomePage extends ConsumerWidget {
   }
 }
 
-/// Corps « données prêtes », responsive (F06) avec intégration de la palette météo.
-class _WeatherContent extends StatelessWidget {
+/// Corps « données prêtes », responsive, avec composants météo premium
+/// et intégration de la palette météo dynamique (contraste WCAG garanti).
+class _WeatherContent extends ConsumerWidget {
   const _WeatherContent({
     super.key,
     required this.weather,
@@ -126,11 +175,20 @@ class _WeatherContent extends StatelessWidget {
   final Future<void> Function() onRefresh;
 
   @override
-  Widget build(BuildContext context) {
-    final hero = CurrentWeatherView(weather: weather);
-    final details = WeatherDetailsGrid(weather: weather);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favorites = ref.watch(favoritesViewModelProvider).value ?? [];
+    final isFavorite = favorites.any(
+      (c) => c.cityName.toLowerCase() == weather.cityName.trim().toLowerCase(),
+    );
+
+    final forecastState = ref.watch(forecastViewModelProvider);
+    final forecastData = forecastState.value;
+
     final isFromCache =
         DateTime.now().difference(weather.fetchedAt).inMinutes >= 1;
+
+    // Badge "dernière mise à jour" — scrim sombre fixe pour un contraste
+    // WCAG garanti quelle que soit la clarté du dégradé de fond (voir fix précédent).
     final updated = Padding(
       padding: const EdgeInsets.only(top: 16),
       child: Center(
@@ -168,35 +226,89 @@ class _WeatherContent extends StatelessWidget {
       backgroundColor: Colors.white,
       child: LayoutBuilder(
         builder: (context, constraints) {
-          // Seuil tablette / paysage large -> deux colonnes.
-          final isWide = constraints.maxWidth >= 600;
+          final isWide = constraints.maxWidth >= 720;
+
+          final mainCard = MainWeatherCard(
+            weather: weather,
+            isFavorite: isFavorite,
+            onToggleFavorite: () {
+              ref
+                  .read(favoritesViewModelProvider.notifier)
+                  .toggleFavorite(weather.cityName);
+            },
+          );
+
+          final forecastSection = ForecastSectionView(
+            hours: forecastData?.hours ?? const [],
+            days: forecastData?.days ?? const [],
+          );
+
+          final detailsGrid = WeatherDetailsEnrichedGrid(weather: weather);
 
           if (isWide) {
+            // Disposition tablette / grand écran (2 colonnes)
             return Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
+                  flex: 5,
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(24, 24, 12, 24),
-                    children: [const SizedBox(height: 8), hero],
+                    padding: const EdgeInsets.fromLTRB(24, 16, 12, 24),
+                    children: [
+                      mainCard,
+                      const SizedBox(height: 20),
+                      forecastSection,
+                    ],
                   ),
                 ),
                 Expanded(
+                  flex: 6,
                   child: ListView(
                     physics: const AlwaysScrollableScrollPhysics(),
-                    padding: const EdgeInsets.fromLTRB(12, 32, 24, 24),
-                    children: [details, updated],
+                    padding: const EdgeInsets.fromLTRB(12, 16, 24, 24),
+                    children: [
+                      const Text(
+                        'Conditions météo détaillées',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      detailsGrid,
+                      updated,
+                    ],
                   ),
                 ),
               ],
             );
           }
 
+          // Disposition mobile portrait
           return ListView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 28),
-            children: [hero, const SizedBox(height: 36), details, updated],
+            padding: const EdgeInsets.fromLTRB(18, 12, 18, 30),
+            children: [
+              mainCard,
+              const SizedBox(height: 22),
+              forecastSection,
+              const SizedBox(height: 22),
+              const Text(
+                'Conditions météo',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.3,
+                ),
+              ),
+              const SizedBox(height: 12),
+              detailsGrid,
+              updated,
+            ],
           );
         },
       ),

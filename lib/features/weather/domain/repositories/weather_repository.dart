@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import '../../../../core/errors/failures.dart';
 import '../entities/forecast_day.dart';
+import '../entities/forecast_hour.dart';
 import '../entities/weather.dart';
 
 /// Contrat abstrait : la couche domain ne connaît jamais l'implémentation concrète
@@ -13,4 +14,9 @@ abstract class WeatherRepository {
 
   /// F02 — Prévisions journalières sur 5 jours
   Future<Either<Failure, List<ForecastDay>>> getForecastByCity(String city);
+
+  /// F06 — Prévisions horaires (tranches de 3h)
+  Future<Either<Failure, List<ForecastHour>>> getForecastHoursByCity(
+    String city,
+  );
 }

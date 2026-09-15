@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../../../../core/constants/api_constants.dart';
 import '../../../../core/errors/exceptions.dart';
+import '../models/forecast_hour_model.dart';
 import '../models/forecast_model.dart';
 import '../models/weather_model.dart';
 
@@ -11,6 +12,7 @@ abstract class WeatherRemoteDataSource {
   Future<WeatherModel> getWeatherByCity(String city);
   Future<WeatherModel> getWeatherByCoordinates(double lat, double lon);
   Future<List<ForecastModel>> getForecastByCity(String city);
+  Future<List<ForecastHourModel>> getForecastHoursByCity(String city);
 }
 
 class WeatherRemoteDataSourceImpl implements WeatherRemoteDataSource {
@@ -76,5 +78,11 @@ class WeatherRemoteDataSourceImpl implements WeatherRemoteDataSource {
   Future<List<ForecastModel>> getForecastByCity(String city) async {
     final data = await _getJson(ApiConstants.forecastByCity(city));
     return ForecastModel.fromForecastJson(data);
+  }
+
+  @override
+  Future<List<ForecastHourModel>> getForecastHoursByCity(String city) async {
+    final data = await _getJson(ApiConstants.forecastByCity(city));
+    return ForecastHourModel.fromForecastJson(data);
   }
 }

@@ -5,6 +5,7 @@ import 'package:weatherpulse_g16/features/weather/domain/entities/forecast_day.d
 import 'package:weatherpulse_g16/features/weather/domain/repositories/weather_repository.dart';
 import 'package:weatherpulse_g16/features/weather/domain/usecases/get_forecast_by_city.dart';
 
+import 'package:weatherpulse_g16/features/weather/domain/entities/forecast_hour.dart';
 import 'package:weatherpulse_g16/features/weather/domain/entities/weather.dart';
 
 // ---------------------------------------------------------------------------
@@ -20,6 +21,11 @@ class MockWeatherRepository implements WeatherRepository {
   ) async {
     return forecastResult!;
   }
+
+  @override
+  Future<Either<Failure, List<ForecastHour>>> getForecastHoursByCity(
+    String city,
+  ) async => const Right([]);
 
   @override
   Future<Either<Failure, Weather>> getWeatherByCity(String city) async =>
