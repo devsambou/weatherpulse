@@ -66,6 +66,8 @@ class WeatherPulseApp extends StatelessWidget {
       title: 'WeatherPulse',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: ThemeMode.system,
       home: const HomePage(),
     );
   }

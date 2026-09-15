@@ -36,6 +36,8 @@ void main() {
     humidity: 50,
     windSpeed: 3.5,
     fetchedAt: DateTime.now(),
+    sunrise: DateTime.now(),
+    sunset: DateTime.now(),
   );
 
   final tForecastModel = ForecastModel(
@@ -79,6 +81,8 @@ void main() {
         humidity: 50,
         windSpeed: 3.5,
         fetchedAt: expiredDate,
+        sunrise: expiredDate,
+        sunset: expiredDate,
       );
 
       await dataSource.cacheWeather('Paris', expiredWeather);

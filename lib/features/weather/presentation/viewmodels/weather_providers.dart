@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../domain/repositories/weather_repository.dart';
+import '../../domain/usecases/get_forecast_by_city.dart';
+import '../../domain/usecases/get_forecast_hours_by_city.dart';
 import '../../domain/usecases/get_weather_by_city.dart';
 import '../../domain/usecases/get_weather_by_location.dart';
 
@@ -56,4 +58,12 @@ final getWeatherByCityProvider = Provider<GetWeatherByCity>(
 
 final getWeatherByLocationProvider = Provider<GetWeatherByLocation>(
   (ref) => GetWeatherByLocation(ref.watch(weatherRepositoryProvider)),
+);
+
+final getForecastByCityProvider = Provider<GetForecastByCity>(
+  (ref) => GetForecastByCity(ref.watch(weatherRepositoryProvider)),
+);
+
+final getForecastHoursByCityProvider = Provider<GetForecastHoursByCity>(
+  (ref) => GetForecastHoursByCity(ref.watch(weatherRepositoryProvider)),
 );
