@@ -129,12 +129,36 @@ class _WeatherContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final hero = CurrentWeatherView(weather: weather);
     final details = WeatherDetailsGrid(weather: weather);
+    final isFromCache =
+        DateTime.now().difference(weather.fetchedAt).inMinutes >= 1;
     final updated = Padding(
       padding: const EdgeInsets.only(top: 16),
-      child: Text(
-        'Mis à jour à ${FrDate.time(weather.fetchedAt)}',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: palette.textSecondary, fontSize: 12),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.22),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                isFromCache ? Icons.cloud_done_outlined : Icons.sync_rounded,
+                size: 14,
+                color: Colors.white.withValues(alpha: 0.9),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                isFromCache
+                    ? 'Données en cache • Mis à jour à ${FrDate.time(weather.fetchedAt)}'
+                    : 'Mis à jour à ${FrDate.time(weather.fetchedAt)}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
       ),
     );
 
