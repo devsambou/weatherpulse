@@ -73,27 +73,49 @@ class _AppLogoPainter extends CustomPainter {
       ..strokeCap = StrokeCap.round;
     for (var i = 0; i < 8; i++) {
       final angle = (math.pi * 2 / 8) * i;
-      final inner = center + Offset(math.cos(angle), math.sin(angle)) * (radius * 1.35);
-      final outer = center + Offset(math.cos(angle), math.sin(angle)) * (radius * 1.9);
+      final inner =
+          center + Offset(math.cos(angle), math.sin(angle)) * (radius * 1.35);
+      final outer =
+          center + Offset(math.cos(angle), math.sin(angle)) * (radius * 1.9);
       canvas.drawLine(inner, outer, rayPaint);
     }
 
     final sunPaint = Paint()
-      ..shader = const RadialGradient(colors: _sunGradient).createShader(
-        Rect.fromCircle(center: center, radius: radius),
-      );
+      ..shader = const RadialGradient(
+        colors: _sunGradient,
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
     canvas.drawCircle(center, radius, sunPaint);
   }
 
   void _paintCloud(Canvas canvas, Size size, double s) {
     final baseY = size.height * 0.62;
     final cloudPath = Path()
-      ..addOval(Rect.fromCircle(center: Offset(size.width * 0.34, baseY - s * 0.06), radius: s * 0.17))
-      ..addOval(Rect.fromCircle(center: Offset(size.width * 0.52, baseY - s * 0.13), radius: s * 0.22))
-      ..addOval(Rect.fromCircle(center: Offset(size.width * 0.70, baseY - s * 0.02), radius: s * 0.16))
+      ..addOval(
+        Rect.fromCircle(
+          center: Offset(size.width * 0.34, baseY - s * 0.06),
+          radius: s * 0.17,
+        ),
+      )
+      ..addOval(
+        Rect.fromCircle(
+          center: Offset(size.width * 0.52, baseY - s * 0.13),
+          radius: s * 0.22,
+        ),
+      )
+      ..addOval(
+        Rect.fromCircle(
+          center: Offset(size.width * 0.70, baseY - s * 0.02),
+          radius: s * 0.16,
+        ),
+      )
       ..addRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTWH(size.width * 0.20, baseY - s * 0.02, size.width * 0.60, s * 0.16),
+          Rect.fromLTWH(
+            size.width * 0.20,
+            baseY - s * 0.02,
+            size.width * 0.60,
+            s * 0.16,
+          ),
           Radius.circular(s * 0.08),
         ),
       );
