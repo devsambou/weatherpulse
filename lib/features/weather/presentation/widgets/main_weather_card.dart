@@ -155,6 +155,7 @@ class MainWeatherCard extends StatelessWidget {
           // Statut de fraîcheur / cache
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 isFromCache ? Icons.cloud_done_outlined : Icons.sync_rounded,
@@ -162,13 +163,16 @@ class MainWeatherCard extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.7),
               ),
               const SizedBox(width: 6),
-              Text(
-                isFromCache
-                    ? 'Données en cache • Mis à jour à ${FrDate.time(weather.fetchedAt)}'
-                    : 'Mis à jour à ${FrDate.time(weather.fetchedAt)}',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 12,
+              Flexible(
+                child: Text(
+                  isFromCache
+                      ? 'Données en cache • Mis à jour à ${FrDate.time(weather.fetchedAt)}'
+                      : 'Mis à jour à ${FrDate.time(weather.fetchedAt)}',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 12,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
