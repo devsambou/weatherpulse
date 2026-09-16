@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 
 import 'core/constants/api_constants.dart';
 import 'core/location/geolocator_location_service.dart';
+import 'core/navigation/app_shell.dart';
 import 'core/theme/app_theme.dart';
 import 'features/settings/data/datasources/settings_local_datasource.dart';
 import 'features/settings/data/repositories/settings_repository_impl.dart';

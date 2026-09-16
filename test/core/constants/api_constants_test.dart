@@ -1,7 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:weatherpulse_g16/core/constants/api_constants.dart';
+import '../../helpers/test_environment.dart';
 
 void main() {
+  setUpAll(setupTestEnvironment);
+
   group('ApiConstants', () {
     test('génère les URLs correctes pour météo et prévisions', () {
       expect(ApiConstants.baseUrl, 'https://api.openweathermap.org/data/2.5');

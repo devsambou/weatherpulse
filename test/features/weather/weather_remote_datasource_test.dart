@@ -5,8 +5,11 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:weatherpulse_g16/core/errors/exceptions.dart';
 import 'package:weatherpulse_g16/features/weather/data/datasources/weather_remote_datasource.dart';
+import '../../helpers/test_environment.dart';
 
 void main() {
+  setUpAll(setupTestEnvironment);
+
   const tWeatherJson = {
     'name': 'Dakar',
     'main': {'temp': 29.5, 'feels_like': 31.0, 'humidity': 70},
