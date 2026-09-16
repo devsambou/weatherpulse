@@ -132,8 +132,8 @@ void main() {
         expect(find.byType(ForecastToggle), findsOneWidget);
         expect(find.byType(ForecastHourlySection), findsOneWidget);
 
-        // Bascule vers le mode 5 jours
-        await tester.tap(find.text('5 jours'));
+        // Bascule vers le mode quotidien via la Key stable du bouton "Quotidien"
+        await tester.tap(find.byKey(const Key('forecast_daily_toggle')));
         await tester.pumpAndSettle();
 
         expect(find.byType(ForecastDailySection), findsOneWidget);

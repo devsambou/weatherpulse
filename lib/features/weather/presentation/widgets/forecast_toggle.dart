@@ -29,12 +29,14 @@ class ForecastToggle extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _ToggleItem(
+            key: const Key('forecast_hourly_toggle'),
             title: 'Par heure',
             icon: Icons.access_time_filled_rounded,
             isSelected: selectedMode == ForecastViewMode.hourly,
             onTap: () => onModeChanged(ForecastViewMode.hourly),
           ),
           _ToggleItem(
+            key: const Key('forecast_daily_toggle'),
             title: 'Quotidien',
             icon: Icons.calendar_month_rounded,
             isSelected: selectedMode == ForecastViewMode.daily,
@@ -48,6 +50,7 @@ class ForecastToggle extends StatelessWidget {
 
 class _ToggleItem extends StatelessWidget {
   const _ToggleItem({
+    super.key,
     required this.title,
     required this.icon,
     required this.isSelected,
