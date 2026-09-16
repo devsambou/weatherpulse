@@ -87,7 +87,7 @@ class WeatherEmptyView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('⛅', style: TextStyle(fontSize: 72)),
+            Icon(Icons.cloud_queue_rounded, size: 72, color: Colors.white70),
             SizedBox(height: 16),
             Text(
               'Recherchez une ville pour afficher sa météo.',

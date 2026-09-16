@@ -36,4 +36,19 @@ class FrDate {
   static String time(DateTime date) =>
       '${date.hour.toString().padLeft(2, '0')}:'
       '${date.minute.toString().padLeft(2, '0')}';
+
+  /// Salutation contextuelle en français selon l'heure de la journée :
+  /// - 05h00 - 11h59 : « Bonjour »
+  /// - 12h00 - 17h59 : « Bon après-midi »
+  /// - 18h00 - 04h59 : « Bonsoir »
+  static String greeting(DateTime date) {
+    final hour = date.hour;
+    if (hour >= 5 && hour < 12) {
+      return 'Bonjour';
+    } else if (hour >= 12 && hour < 18) {
+      return 'Bon après-midi';
+    } else {
+      return 'Bonsoir';
+    }
+  }
 }

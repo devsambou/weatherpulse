@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import '../../../../core/errors/exceptions.dart';
 import '../../../../core/errors/failures.dart';
 import '../../domain/entities/forecast_day.dart';
+import '../../domain/entities/forecast_hour.dart';
 import '../../domain/entities/weather.dart';
 import '../../domain/repositories/weather_repository.dart';
 import '../datasources/weather_local_datasource.dart';
@@ -69,7 +70,31 @@ class WeatherRepositoryImpl implements WeatherRepository {
     String city,
   ) async {
     try {
+      // 1. Tente le cache d'abord (feature bonus)
+      final cached = await localDataSource.getCachedForecast(city);
+      if (cached != null) return Right(cached);
+
+      // 2. Sinon appel réseau
       final result = await remoteDataSource.getForecastByCity(city);
+      await localDataSource.cacheForecast(city, result);
+      return Right(result);
+    } catch (e) {
+      return Left(_mapException(e));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<ForecastHour>>> getForecastHoursByCity(
+    String city,
+  ) async {
+    try {
+      // 1. Tente le cache d'abord
+      final cached = await localDataSource.getCachedHourlyForecast(city);
+      if (cached != null) return Right(cached);
+
+      // 2. Sinon appel réseau
+      final result = await remoteDataSource.getForecastHoursByCity(city);
+      await localDataSource.cacheHourlyForecast(city, result);
       return Right(result);
     } catch (e) {
       return Left(_mapException(e));

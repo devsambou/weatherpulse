@@ -6,10 +6,16 @@ import 'package:http/http.dart' as http;
 
 import 'core/constants/api_constants.dart';
 import 'core/theme/app_theme.dart';
+import 'features/settings/data/datasources/settings_local_datasource.dart';
+import 'features/settings/data/repositories/settings_repository_impl.dart';
+import 'features/settings/presentation/viewmodels/settings_providers.dart';
+import 'features/weather/data/datasources/favorites_local_datasource.dart';
 import 'features/weather/data/datasources/weather_local_datasource.dart';
 import 'features/weather/data/datasources/weather_remote_datasource.dart';
+import 'features/weather/data/repositories/favorites_repository_impl.dart';
 import 'features/weather/data/repositories/weather_repository_impl.dart';
-import 'features/weather/presentation/pages/home_page.dart';
+import 'core/navigation/app_shell.dart';
+import 'features/weather/presentation/viewmodels/favorites_providers.dart';
 import 'features/weather/presentation/viewmodels/weather_providers.dart';
 
 Future<void> main() async {
@@ -22,24 +28,34 @@ Future<void> main() async {
     await dotenv.load(fileName: '.env');
   } catch (_) {}
 
-  // Cache local (feature bonus) : box ouverte une fois pour toute l'app.
+  // Cache local & persistance (Hive) : box ouvertes une fois au démarrage
   await Hive.initFlutter();
   final weatherBox = await Hive.openBox<String>(CacheConstants.weatherBoxName);
+  final favoritesBox = await Hive.openBox<String>(FavoritesConstants.boxName);
+  final settingsBox = await Hive.openBox<String>(SettingsConstants.boxName);
 
   // TODO Membre E : initialiser Firebase ici (Firebase.initializeApp()).
 
-  // Câblage de la couche `data` derrière le contrat WeatherRepository.
-  // La présentation ne dépend que de `weatherRepositoryProvider` ; c'est le
-  // seul endroit qui connaît les implémentations concrètes.
+  // Câblage de la couche `data` derrière les contrats d'abstraction
   final weatherRepository = WeatherRepositoryImpl(
     remoteDataSource: WeatherRemoteDataSourceImpl(http.Client()),
     localDataSource: WeatherLocalDataSourceImpl(weatherBox),
+  );
+
+  final favoritesRepository = FavoritesRepositoryImpl(
+    localDataSource: FavoritesLocalDataSourceImpl(favoritesBox),
+  );
+
+  final settingsRepository = SettingsRepositoryImpl(
+    localDataSource: SettingsLocalDataSourceImpl(settingsBox),
   );
 
   runApp(
     ProviderScope(
       overrides: [
         weatherRepositoryProvider.overrideWithValue(weatherRepository),
+        favoritesRepositoryProvider.overrideWithValue(favoritesRepository),
+        settingsRepositoryProvider.overrideWithValue(settingsRepository),
         // TODO(Géolocalisation): ajouter ici
         // locationServiceProvider.overrideWithValue(GeolocatorLocationService()).
       ],
@@ -48,16 +64,20 @@ Future<void> main() async {
   );
 }
 
-class WeatherPulseApp extends StatelessWidget {
+class WeatherPulseApp extends ConsumerWidget {
   const WeatherPulseApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeMode = ref.watch(themeModeProvider);
+
     return MaterialApp(
       title: 'WeatherPulse',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
-      home: const HomePage(),
+      darkTheme: AppTheme.dark,
+      themeMode: themeMode,
+      home: const AppShell(),
     );
   }
 }

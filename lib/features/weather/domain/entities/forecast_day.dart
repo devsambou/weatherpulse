@@ -8,6 +8,7 @@ class ForecastDay extends Equatable {
   final double tempMax;
   final String description;
   final String iconCode;
+  final DateTime? fetchedAt;
 
   const ForecastDay({
     required this.date,
@@ -15,8 +16,16 @@ class ForecastDay extends Equatable {
     required this.tempMax,
     required this.description,
     required this.iconCode,
+    this.fetchedAt,
   });
 
   @override
-  List<Object> get props => [date, tempMin, tempMax, description, iconCode];
+  List<Object?> get props => [
+    date,
+    tempMin,
+    tempMax,
+    description,
+    iconCode,
+    fetchedAt,
+  ];
 }

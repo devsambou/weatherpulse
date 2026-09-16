@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/utils/fr_date.dart';
 import '../../domain/entities/weather.dart';
+import '../viewmodels/favorites_view_model.dart';
 import 'weather_glyph.dart';
 
 /// Bloc « héros » de l'écran principal (F05) : date, ville, icône,
@@ -44,6 +46,8 @@ class CurrentWeatherView extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(width: 4),
+            _FavoriteToggleButton(cityName: weather.cityName),
           ],
         ),
         const SizedBox(height: 12),
@@ -73,6 +77,32 @@ class CurrentWeatherView extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _FavoriteToggleButton extends ConsumerWidget {
+  const _FavoriteToggleButton({required this.cityName});
+
+  final String cityName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final favorites = ref.watch(favoritesViewModelProvider).value ?? [];
+    final isFav = favorites.any(
+      (c) => c.cityName.toLowerCase() == cityName.trim().toLowerCase(),
+    );
+
+    return IconButton(
+      tooltip: isFav ? 'Retirer des favoris' : 'Ajouter aux favoris',
+      icon: Icon(
+        isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+        color: isFav ? Colors.redAccent : Colors.white.withValues(alpha: 0.85),
+        size: 24,
+      ),
+      onPressed: () {
+        ref.read(favoritesViewModelProvider.notifier).toggleFavorite(cityName);
+      },
     );
   }
 }
