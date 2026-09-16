@@ -10,12 +10,12 @@ import 'core/theme/app_theme.dart';
 import 'features/settings/data/datasources/settings_local_datasource.dart';
 import 'features/settings/data/repositories/settings_repository_impl.dart';
 import 'features/settings/presentation/viewmodels/settings_providers.dart';
+import 'features/splash/presentation/pages/splash_page.dart';
 import 'features/weather/data/datasources/favorites_local_datasource.dart';
 import 'features/weather/data/datasources/weather_local_datasource.dart';
 import 'features/weather/data/datasources/weather_remote_datasource.dart';
 import 'features/weather/data/repositories/favorites_repository_impl.dart';
 import 'features/weather/data/repositories/weather_repository_impl.dart';
-import 'features/weather/presentation/pages/home_page.dart';
 import 'features/weather/presentation/viewmodels/favorites_providers.dart';
 import 'features/weather/presentation/viewmodels/weather_providers.dart';
 
@@ -80,7 +80,7 @@ class WeatherPulseApp extends ConsumerWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
-      home: const HomePage(),
+      home: const SplashPage(),
     );
   }
 }
