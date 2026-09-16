@@ -3,14 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:weatherpulse_g16/features/weather/presentation/pages/home_page.dart';
 import 'package:weatherpulse_g16/features/weather/presentation/viewmodels/weather_providers.dart';
-import 'package:weatherpulse_g16/features/weather/presentation/widgets/current_weather_view.dart';
+import 'package:weatherpulse_g16/features/weather/presentation/widgets/main_weather_card.dart';
+import 'package:weatherpulse_g16/features/weather/presentation/widgets/weather_detail_card.dart';
+import 'package:weatherpulse_g16/features/weather/presentation/widgets/weather_state_views.dart';
 
 import '../../../helpers/fake_weather_repository.dart';
 
 /// Trouve un texte affiché dans le bloc météo, en excluant le champ de
 /// recherche (qui conserve la dernière saisie et peut porter le même texte).
 Finder _inHero(String text) => find.descendant(
-  of: find.byType(CurrentWeatherView),
+  of: find.byType(MainWeatherCard),
   matching: find.text(text),
 );
 
@@ -60,7 +62,15 @@ void main() {
       expect(_inHero('Dakar'), findsOneWidget);
       expect(_inHero('27°'), findsOneWidget);
       expect(_inHero('Ressenti 29°'), findsOneWidget);
-      expect(find.text('55%'), findsOneWidget); // humidité
+      expect(
+        find.byWidgetPredicate(
+          (widget) =>
+              widget is WeatherDetailCard &&
+              widget.label == 'Humidité' &&
+              widget.value == '55',
+        ),
+        findsOneWidget,
+      ); // humidité
     });
 
     testWidgets(
@@ -79,7 +89,13 @@ void main() {
 
         await _searchCity(tester, 'Atlantide');
 
-        expect(find.text('Pas de connexion internet.'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byType(WeatherErrorView),
+            matching: find.text('Pas de connexion internet.'),
+          ),
+          findsOneWidget,
+        );
         expect(find.text('Réessayer'), findsOneWidget);
       },
     );

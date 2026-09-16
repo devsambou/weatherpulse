@@ -133,7 +133,7 @@ void main() {
         expect(find.byType(ForecastHourlySection), findsOneWidget);
 
         // Bascule vers le mode 5 jours
-        await tester.tap(find.text('5 jours'));
+        await tester.tap(find.text('Quotidien'));
         await tester.pumpAndSettle();
 
         expect(find.byType(ForecastDailySection), findsOneWidget);

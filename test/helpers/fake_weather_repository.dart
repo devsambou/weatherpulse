@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:weatherpulse_g16/core/errors/failures.dart';
 import 'package:weatherpulse_g16/features/weather/domain/entities/forecast_day.dart';
+import 'package:weatherpulse_g16/features/weather/domain/entities/forecast_hour.dart';
 import 'package:weatherpulse_g16/features/weather/domain/entities/weather.dart';
 import 'package:weatherpulse_g16/features/weather/domain/repositories/weather_repository.dart';
 
@@ -20,6 +21,8 @@ class FakeWeatherRepository implements WeatherRepository {
     humidity: 55,
     windSpeed: 2.5,
     fetchedAt: DateTime(2026, 1, 1, 12),
+    sunrise: DateTime(2026, 1, 1, 7),
+    sunset: DateTime(2026, 1, 1, 19),
   );
 
   @override
@@ -57,6 +60,29 @@ class FakeWeatherRepository implements WeatherRepository {
           tempMax: 28 + i.toDouble(),
           description: 'ciel dégagé',
           iconCode: '01d',
+        ),
+      ),
+    );
+  }
+
+  @override
+  Future<Either<Failure, List<ForecastHour>>> getForecastHoursByCity(
+    String city,
+  ) async {
+    if (shouldFail) {
+      return const Left(NetworkFailure('Pas de connexion internet.'));
+    }
+    return Right(
+      List.generate(
+        8,
+        (i) => ForecastHour(
+          dateTime: DateTime(2026, 1, 1, 3 * i),
+          temperature: 20 + i.toDouble(),
+          feelsLike: 22 + i.toDouble(),
+          description: 'ciel dégagé',
+          iconCode: '01d',
+          humidity: 55,
+          windSpeed: 2.5,
         ),
       ),
     );
