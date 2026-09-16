@@ -6,11 +6,11 @@ import 'package:http/http.dart' as http;
 
 import 'core/constants/api_constants.dart';
 import 'core/location/geolocator_location_service.dart';
-import 'core/navigation/app_shell.dart';
 import 'core/theme/app_theme.dart';
 import 'features/settings/data/datasources/settings_local_datasource.dart';
 import 'features/settings/data/repositories/settings_repository_impl.dart';
 import 'features/settings/presentation/viewmodels/settings_providers.dart';
+import 'features/splash/presentation/pages/splash_page.dart';
 import 'features/weather/data/datasources/favorites_local_datasource.dart';
 import 'features/weather/data/datasources/weather_local_datasource.dart';
 import 'features/weather/data/datasources/weather_remote_datasource.dart';
@@ -80,7 +80,7 @@ class WeatherPulseApp extends ConsumerWidget {
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
-      home: const AppShell(),
+      home: const SplashPage(),
     );
   }
 }
