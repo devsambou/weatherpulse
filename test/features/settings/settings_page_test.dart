@@ -41,7 +41,7 @@ void main() {
       expect(find.text('Système'), findsOneWidget);
       expect(find.text('Clair'), findsOneWidget);
       expect(find.text('Sombre'), findsOneWidget);
-      expect(find.text('PALETTE DYNAMIQUE'), findsOneWidget);
+      expect(find.text('PALETTE DYNAMIQUE'), findsNothing);
     });
 
     testWidgets('permet de changer de thème vers Clair puis Sombre', (

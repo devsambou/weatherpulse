@@ -10,7 +10,6 @@ import '../viewmodels/favorites_view_model.dart';
 import '../viewmodels/forecast_view_model.dart';
 import '../viewmodels/weather_view_model.dart';
 import '../widgets/contextual_header.dart';
-import '../widgets/favorites_bar.dart';
 import '../widgets/forecast_hourly_section.dart';
 import '../widgets/main_weather_card.dart';
 import '../widgets/weather_detail_card.dart';
@@ -23,7 +22,6 @@ import '../widgets/weather_state_views.dart';
 /// - Header contextuel (salutation dynamique, ville, accès paramètres)
 /// - Barre de recherche pilule avec état de chargement et gestion d'erreur
 /// - Carte météo principale glassmorphism, avec bascule favori
-/// - Barre de favoris interactive
 /// - Section de prévisions avec toggle Par heure / Quotidien
 /// - Grille responsive des détails météo enrichis
 /// - Animations soignées (AnimatedSwitcher, transitions douces)
@@ -99,18 +97,7 @@ class HomePage extends ConsumerWidget {
                     onUseLocation: viewModel.loadFromDeviceLocation,
                   ),
                 ),
-                const SizedBox(height: 10),
-
-                // Barre des villes favorites
-                FavoritesBar(
-                  selectedCity: weather?.cityName,
-                  onCitySelected: (city) {
-                    viewModel.loadByCity(city);
-                    ref
-                        .read(forecastViewModelProvider.notifier)
-                        .loadForCity(city);
-                  },
-                ),
+                const SizedBox(height: 12),
 
                 // Contenu principal avec AnimatedSwitcher (Fonctionnalité 5)
                 Expanded(
@@ -231,10 +218,24 @@ class _WeatherContent extends ConsumerWidget {
           final mainCard = MainWeatherCard(
             weather: weather,
             isFavorite: isFavorite,
-            onToggleFavorite: () {
-              ref
-                  .read(favoritesViewModelProvider.notifier)
-                  .toggleFavorite(weather.cityName);
+            onToggleFavorite: () async {
+              final favNotifier = ref.read(favoritesViewModelProvider.notifier);
+              final wasFavorite = favNotifier.isCityFavorite(weather.cityName);
+              await favNotifier.toggleFavorite(weather.cityName);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      !wasFavorite
+                          ? '${weather.cityName} a été ajoutée à vos Favoris'
+                          : '${weather.cityName} a été retirée des Favoris',
+                    ),
+                    duration: const Duration(seconds: 2),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
             },
           );
 

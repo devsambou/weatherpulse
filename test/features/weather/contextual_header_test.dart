@@ -59,13 +59,13 @@ void main() {
       },
     );
 
-    testWidgets('le bouton paramètres est présent avec son icône', (
+    testWidgets('le bouton paramètres n\'est plus présent dans le header', (
       tester,
     ) async {
       await tester.pumpWidget(buildTestWidget());
 
       final settingsButton = find.byIcon(Icons.settings_outlined);
-      expect(settingsButton, findsOneWidget);
+      expect(settingsButton, findsNothing);
     });
   });
 }

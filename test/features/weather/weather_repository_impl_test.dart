@@ -349,4 +349,64 @@ void main() {
       },
     );
   });
+
+  group('getWeatherByCoordinates — cache & network', () {
+    test('retourne Right(Weather) depuis le cache si présent', () async {
+      mockLocal.cachedResult = tWeatherModel;
+      mockRemote.errorToThrow = const NetworkException();
+
+      final result = await repository.getWeatherByCoordinates(48.8, 2.3);
+
+      expect(result, Right(tWeatherModel));
+    });
+
+    test('appelle remote et sauvegarde si cache absent', () async {
+      mockLocal.cachedResult = null;
+      mockRemote.weatherResult = tWeatherModel;
+
+      final result = await repository.getWeatherByCoordinates(48.8, 2.3);
+
+      expect(result, Right(tWeatherModel));
+      expect(mockLocal.cacheWasCalled, isTrue);
+    });
+  });
+
+  group('getForecastHoursByCity', () {
+    final tHourlyList = [
+      ForecastHourModel(
+        dateTime: DateTime(2024, 1, 15, 12, 0),
+        temperature: 15.0,
+        feelsLike: 14.0,
+        description: 'ciel dégagé',
+        iconCode: '01d',
+      ),
+    ];
+
+    test('retourne depuis le cache si disponible', () async {
+      mockLocal.cachedHourlyResult = tHourlyList;
+      mockRemote.errorToThrow = const NetworkException();
+
+      final result = await repository.getForecastHoursByCity('Paris');
+
+      expect(result, Right(tHourlyList));
+    });
+
+    test('appelle remote et sauvegarde si cache absent', () async {
+      mockLocal.cachedHourlyResult = null;
+      mockRemote.hourlyForecastResult = tHourlyList;
+
+      final result = await repository.getForecastHoursByCity('Paris');
+
+      expect(result, Right(tHourlyList));
+    });
+
+    test('retourne Failure en cas d\'erreur réseau', () async {
+      mockLocal.cachedHourlyResult = null;
+      mockRemote.errorToThrow = const NetworkException('timeout');
+
+      final result = await repository.getForecastHoursByCity('Paris');
+
+      expect(result.isLeft(), isTrue);
+    });
+  });
 }

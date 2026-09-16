@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
 import 'package:weatherpulse_g16/core/constants/api_constants.dart';
 import 'package:weatherpulse_g16/features/weather/data/datasources/weather_local_datasource.dart';
+import 'package:weatherpulse_g16/features/weather/data/models/forecast_hour_model.dart';
 import 'package:weatherpulse_g16/features/weather/data/models/forecast_model.dart';
 import 'package:weatherpulse_g16/features/weather/data/models/weather_model.dart';
 
@@ -147,5 +148,30 @@ void main() {
         expect(cachedForecast, isNotNull);
       },
     );
+
+    test(
+      'cacheHourlyForecast et getCachedHourlyForecast fonctionnent',
+      () async {
+        final hour = ForecastHourModel(
+          dateTime: DateTime(2024, 1, 15, 12, 0),
+          temperature: 15.0,
+          feelsLike: 14.0,
+          description: 'soleil',
+          iconCode: '01d',
+        );
+
+        await dataSource.cacheHourlyForecast('Paris', [hour]);
+        final result = await dataSource.getCachedHourlyForecast('Paris');
+
+        expect(result, isNotNull);
+        expect(result!.length, 1);
+        expect(result.first.temperature, 15.0);
+      },
+    );
+
+    test('getCachedHourlyForecast retourne null si inexistant', () async {
+      final result = await dataSource.getCachedHourlyForecast('Inconnue');
+      expect(result, isNull);
+    });
   });
 }

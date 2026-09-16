@@ -2,15 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/utils/fr_date.dart';
 import '../../../../core/utils/weather_visuals.dart';
-import '../../../settings/presentation/pages/settings_page.dart';
 import '../../domain/entities/weather.dart';
 
 /// Header contextuel (CDC C) affichant :
 /// - une salutation selon l'heure de la journée (Bonjour, Bon après-midi, Bonsoir) ;
 /// - le nom de la ville sélectionnée ;
 /// - l'heure de dernière mise à jour ;
-/// - l'icône et la condition météo ;
-/// - l'accès rapide aux Paramètres.
+/// - l'icône et la condition météo.
 class ContextualHeader extends StatelessWidget {
   const ContextualHeader({super.key, required this.weather, this.now});
 
@@ -29,12 +27,11 @@ class ContextualHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Barre supérieure : Titre et bouton Paramètres
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const SizedBox(width: 40), // Équilibre le bouton d'action
-              const Text(
+          // Barre supérieure : Titre centré
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 4),
+              child: Text(
                 'WEATHERPULSE',
                 style: TextStyle(
                   color: Colors.white,
@@ -43,16 +40,7 @@ class ContextualHeader extends StatelessWidget {
                   letterSpacing: 2.5,
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.settings_outlined, color: Colors.white),
-                tooltip: 'Paramètres',
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SettingsPage()),
-                  );
-                },
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 8),
 
@@ -78,11 +66,12 @@ class ContextualHeader extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
-                    child: Text(
+                    child: Icon(
                       weather != null
-                          ? WeatherVisuals.emoji(weather!.iconCode)
-                          : '👋',
-                      style: const TextStyle(fontSize: 22),
+                          ? WeatherVisuals.icon(weather!.iconCode)
+                          : Icons.waving_hand_rounded,
+                      size: 24,
+                      color: Colors.white,
                     ),
                   ),
                   const SizedBox(width: 12),

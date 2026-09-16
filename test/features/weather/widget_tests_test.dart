@@ -5,7 +5,9 @@ import 'package:weatherpulse_g16/features/weather/presentation/widgets/forecast_
 import 'package:weatherpulse_g16/features/weather/presentation/widgets/glass_container.dart';
 import 'package:weatherpulse_g16/features/weather/presentation/widgets/main_weather_card.dart';
 import 'package:weatherpulse_g16/features/weather/presentation/widgets/weather_detail_card.dart';
+import 'package:weatherpulse_g16/features/weather/presentation/widgets/weather_glyph.dart';
 import 'package:weatherpulse_g16/features/weather/presentation/widgets/weather_search_field.dart';
+import 'package:weatherpulse_g16/features/weather/presentation/widgets/weather_state_views.dart';
 
 void main() {
   final tWeather = Weather(
@@ -227,4 +229,128 @@ void main() {
       expect(selectedMode, ForecastViewMode.daily);
     });
   });
+
+  group('WeatherGlyph', () {
+    testWidgets('affiche une icône Material pour un code connu "01d"', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 200,
+              height: 200,
+              child: Center(child: _WeatherGlyphWrapper(iconCode: '01d')),
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(Icon), findsOneWidget);
+    });
+
+    testWidgets('accepte un paramètre size personnalisé', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              height: 300,
+              child: Center(
+                child: _WeatherGlyphWrapper(iconCode: '11d', size: 80),
+              ),
+            ),
+          ),
+        ),
+      );
+      expect(find.byType(Icon), findsOneWidget);
+    });
+  });
+
+  group('WeatherStateViews', () {
+    testWidgets('WeatherEmptyView affiche le message d\'invitation', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: _WeatherEmptyViewWrapper())),
+      );
+      expect(
+        find.text('Recherchez une ville pour afficher sa météo.'),
+        findsOneWidget,
+      );
+      expect(find.byType(Icon), findsOneWidget);
+    });
+
+    testWidgets('WeatherLoadingView affiche un indicateur de chargement', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const MaterialApp(home: Scaffold(body: _WeatherLoadingViewWrapper())),
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Chargement de la météo…'), findsOneWidget);
+    });
+
+    testWidgets('WeatherErrorView affiche le message et le bouton réessayer', (
+      tester,
+    ) async {
+      var retried = false;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: _WeatherErrorViewWrapper(
+              message: 'Ville introuvable.',
+              onRetry: () async => retried = true,
+            ),
+          ),
+        ),
+      );
+      expect(find.text('Ville introuvable.'), findsOneWidget);
+      expect(find.text('Réessayer'), findsOneWidget);
+
+      await tester.tap(find.text('Réessayer'));
+      await tester.pump();
+      expect(retried, isTrue);
+    });
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Wrappers légers pour isoler les widgets dans les tests
+// ---------------------------------------------------------------------------
+
+class _WeatherGlyphWrapper extends StatelessWidget {
+  const _WeatherGlyphWrapper({required this.iconCode, this.size = 120});
+  final String iconCode;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) =>
+      WeatherGlyph(iconCode: iconCode, size: size);
+}
+
+class _WeatherEmptyViewWrapper extends StatelessWidget {
+  const _WeatherEmptyViewWrapper();
+
+  @override
+  Widget build(BuildContext context) => const WeatherEmptyView();
+}
+
+class _WeatherLoadingViewWrapper extends StatelessWidget {
+  const _WeatherLoadingViewWrapper();
+
+  @override
+  Widget build(BuildContext context) => const WeatherLoadingView();
+}
+
+class _WeatherErrorViewWrapper extends StatelessWidget {
+  const _WeatherErrorViewWrapper({
+    required this.message,
+    required this.onRetry,
+  });
+  final String message;
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) =>
+      WeatherErrorView(message: message, onRetry: onRetry);
 }

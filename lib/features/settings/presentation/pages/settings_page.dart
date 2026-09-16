@@ -19,11 +19,13 @@ class SettingsPage extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Paramètres'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          tooltip: 'Retour',
-          onPressed: () => Navigator.of(context).pop(),
-        ),
+        leading: Navigator.of(context).canPop()
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                tooltip: 'Retour',
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : null,
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -97,56 +99,6 @@ class SettingsPage extends ConsumerWidget {
                   onSelected: () => ref
                       .read(themeModeProvider.notifier)
                       .setThemeMode(ThemeMode.dark),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 28),
-          Text(
-            'PALETTE DYNAMIQUE',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 1.2,
-              color: isDark
-                  ? Colors.white70
-                  : Colors.white.withValues(alpha: 0.9),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? const Color(0xFF1B2433).withValues(alpha: 0.7)
-                  : Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isDark
-                    ? const Color(0xFF33425A).withValues(alpha: 0.5)
-                    : Colors.white.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(
-                  Icons.palette_outlined,
-                  color: Colors.white,
-                  size: 24,
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    'Les teintes et dégradés s\'adaptent automatiquement '
-                    'en temps réel aux conditions météo (ensoleillé, nuageux, pluie, neige, etc.) '
-                    'tout en respectant votre préférence de thème clair ou sombre.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.4,
-                      color: Colors.white.withValues(alpha: 0.9),
-                    ),
-                  ),
                 ),
               ],
             ),
