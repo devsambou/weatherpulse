@@ -26,6 +26,9 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<!-- F04 — Géolocalisation : message affiché lors de la demande d'autorisation -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>WeatherPulse a besoin de votre position pour afficher la météo de votre position actuelle.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
